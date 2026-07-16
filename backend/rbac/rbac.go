@@ -46,6 +46,11 @@ var Permissions = []PermissionDef{
 	{"master.create", "Membuat data master"},
 	{"master.update", "Mengubah data master"},
 	{"master.delete", "Menghapus data master"},
+
+	{"curriculum.read", "Melihat data kurikulum"},
+	{"curriculum.create", "Membuat data kurikulum"},
+	{"curriculum.update", "Mengubah data kurikulum"},
+	{"curriculum.delete", "Menghapus data kurikulum"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -66,4 +71,15 @@ func AdministratorPermissions() []string {
 // mengelola data master ditambah melihat user.
 func TataUsahaPermissions() []string {
 	return append(masterPermissionKeys(), "user.read")
+}
+
+// curriculumPermissionKeys mengembalikan seluruh key permission kurikulum.
+func curriculumPermissionKeys() []string {
+	return []string{"curriculum.read", "curriculum.create", "curriculum.update", "curriculum.delete"}
+}
+
+// WakilKurikulumPermissions mengembalikan permission untuk role Wakil Kurikulum:
+// mengelola kurikulum ditambah membaca data master sebagai referensi.
+func WakilKurikulumPermissions() []string {
+	return append(curriculumPermissionKeys(), "master.read")
 }
