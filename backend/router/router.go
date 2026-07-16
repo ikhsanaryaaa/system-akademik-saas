@@ -43,6 +43,10 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	staffHandler := handler.NewStaffHandler(db)
 	classHandler := handler.NewClassHandler(db)
 	studentHandler := handler.NewStudentHandler(db)
+	subjectHandler := handler.NewSubjectHandler(db)
+	classSubjectHandler := handler.NewClassSubjectHandler(db)
+	lessonScheduleHandler := handler.NewLessonScheduleHandler(db)
+	academicCalendarHandler := handler.NewAcademicCalendarHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -74,10 +78,24 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerMasterCRUD(auth, "/staff", staffHandler.List, staffHandler.Create, staffHandler.Update, staffHandler.Delete)
 			registerMasterCRUD(auth, "/classes", classHandler.List, classHandler.Create, classHandler.Update, classHandler.Delete)
 			registerMasterCRUD(auth, "/students", studentHandler.List, studentHandler.Create, studentHandler.Update, studentHandler.Delete)
+
+			registerCurriculumCRUD(auth, "/subjects", subjectHandler.List, subjectHandler.Create, subjectHandler.Update, subjectHandler.Delete)
+			registerCurriculumCRUD(auth, "/class-subjects", classSubjectHandler.List, classSubjectHandler.Create, classSubjectHandler.Update, classSubjectHandler.Delete)
+			registerCurriculumCRUD(auth, "/lesson-schedules", lessonScheduleHandler.List, lessonScheduleHandler.Create, lessonScheduleHandler.Update, lessonScheduleHandler.Delete)
+			registerCurriculumCRUD(auth, "/academic-calendar", academicCalendarHandler.List, academicCalendarHandler.Create, academicCalendarHandler.Update, academicCalendarHandler.Delete)
 		}
 	}
 
 	return r
+}
+
+// registerCurriculumCRUD mendaftarkan route CRUD untuk entitas kurikulum,
+// dengan permission curriculum.read untuk baca dan curriculum.create/update/delete untuk tulis.
+func registerCurriculumCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("curriculum.read"), list)
+	g.POST(path, middleware.RequirePermission("curriculum.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("curriculum.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("curriculum.delete"), del)
 }
 
 // registerMasterCRUD mendaftarkan route CRUD standar untuk entitas master data,

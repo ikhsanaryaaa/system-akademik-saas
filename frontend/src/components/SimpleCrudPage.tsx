@@ -22,11 +22,13 @@ export default function SimpleCrudPage({
   path,
   columns,
   fields,
+  permPrefix = "master",
 }: {
   title: string;
   path: string;
   columns: ColumnDef[];
   fields: FieldDef[];
+  permPrefix?: string;
 }) {
   const { can } = useAuth();
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
@@ -90,7 +92,7 @@ export default function SimpleCrudPage({
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">{title}</h1>
-        {can("master.create") && (
+        {can(`${permPrefix}.create`) && (
           <button
             onClick={openCreate}
             className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
@@ -134,12 +136,12 @@ export default function SimpleCrudPage({
                     </td>
                   ))}
                   <td className="px-4 py-3 text-right">
-                    {can("master.update") && (
+                    {can(`${permPrefix}.update`) && (
                       <button onClick={() => openEdit(row)} className="text-primary hover:underline">
                         Edit
                       </button>
                     )}
-                    {can("master.delete") && (
+                    {can(`${permPrefix}.delete`) && (
                       <button
                         onClick={() => handleDelete(String(row.id))}
                         className="ml-3 text-danger hover:underline"
