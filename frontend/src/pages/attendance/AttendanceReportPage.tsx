@@ -50,8 +50,11 @@ export default function AttendanceReportPage() {
 
       <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
         <div>
-          <label className="block text-sm font-medium text-body">Kelas</label>
+          <label htmlFor="report-class" className="block text-sm font-medium text-body">
+            Kelas
+          </label>
           <select
+            id="report-class"
             value={classId}
             onChange={(e) => setClassId(e.target.value)}
             className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"
@@ -65,8 +68,11 @@ export default function AttendanceReportPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-body">Dari</label>
+          <label htmlFor="report-start" className="block text-sm font-medium text-body">
+            Dari
+          </label>
           <input
+            id="report-start"
             type="date"
             value={start}
             onChange={(e) => setStart(e.target.value)}
@@ -74,8 +80,11 @@ export default function AttendanceReportPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-body">Sampai</label>
+          <label htmlFor="report-end" className="block text-sm font-medium text-body">
+            Sampai
+          </label>
           <input
+            id="report-end"
             type="date"
             value={end}
             onChange={(e) => setEnd(e.target.value)}

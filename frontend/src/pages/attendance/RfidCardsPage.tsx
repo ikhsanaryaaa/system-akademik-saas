@@ -139,8 +139,11 @@ export default function RfidCardsPage() {
             <h2 className="text-lg font-semibold text-ink">Tambah Kartu RFID</h2>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-body">UID Kartu</label>
+                <label htmlFor="rfid-uid" className="block text-sm font-medium text-body">
+                  UID Kartu
+                </label>
                 <input
+                  id="rfid-uid"
                   value={uid}
                   onChange={(e) => setUid(e.target.value)}
                   required
@@ -148,8 +151,11 @@ export default function RfidCardsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Tipe Pemilik</label>
+                <label htmlFor="rfid-owner-type" className="block text-sm font-medium text-body">
+                  Tipe Pemilik
+                </label>
                 <select
+                  id="rfid-owner-type"
                   value={ownerType}
                   onChange={(e) => {
                     setOwnerType(e.target.value as "student" | "teacher");
@@ -162,8 +168,11 @@ export default function RfidCardsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Pemilik</label>
+                <label htmlFor="rfid-owner" className="block text-sm font-medium text-body">
+                  Pemilik
+                </label>
                 <select
+                  id="rfid-owner"
                   value={ownerId}
                   onChange={(e) => setOwnerId(e.target.value)}
                   required
