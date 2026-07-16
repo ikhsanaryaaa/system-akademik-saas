@@ -13,11 +13,24 @@ import TeachersPage from "./pages/master/TeachersPage";
 import StaffPage from "./pages/master/StaffPage";
 import ClassesPage from "./pages/master/ClassesPage";
 import StudentsPage from "./pages/master/StudentsPage";
+import SubjectsPage from "./pages/curriculum/SubjectsPage";
+import ClassSubjectsPage from "./pages/curriculum/ClassSubjectsPage";
+import LessonSchedulesPage from "./pages/curriculum/LessonSchedulesPage";
+import AcademicCalendarPage from "./pages/curriculum/AcademicCalendarPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
   return (
     <RequireAuth permission="master.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// curriculumRoute membungkus halaman kurikulum dengan guard permission curriculum.read.
+function curriculumRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="curriculum.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -68,6 +81,11 @@ export default function App() {
       <Route path="/master/staff" element={masterRoute(<StaffPage />)} />
       <Route path="/master/classes" element={masterRoute(<ClassesPage />)} />
       <Route path="/master/students" element={masterRoute(<StudentsPage />)} />
+
+      <Route path="/curriculum/subjects" element={curriculumRoute(<SubjectsPage />)} />
+      <Route path="/curriculum/class-subjects" element={curriculumRoute(<ClassSubjectsPage />)} />
+      <Route path="/curriculum/schedules" element={curriculumRoute(<LessonSchedulesPage />)} />
+      <Route path="/curriculum/calendar" element={curriculumRoute(<AcademicCalendarPage />)} />
     </Routes>
   );
 }
