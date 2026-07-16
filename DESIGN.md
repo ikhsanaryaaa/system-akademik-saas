@@ -588,7 +588,7 @@ Kontrol interaktif memakai `{rounded.md}` (8px), kontainer `{rounded.lg}` (12px)
 
 **`field-label`** — Label field `{typography.label}`; tanda wajib "*" `{colors.danger}`.
 
-**`field-error`** — Pesan validasi `{typography.caption}` `{colors.danger}` di bawah field. Sumber pesan mengikuti validasi type-safe Elysia di server.
+**`field-error`** — Pesan validasi `{typography.caption}` `{colors.danger}` di bawah field. Sumber pesan mengikuti validasi struct Go di server.
 
 **`filter-bar`** — Baris filter di atas tabel: **Tingkatan / Kelas / Jurusan / Tahun Ajaran**, plus pencarian dan tombol filter. Ini pola paling berulang — hampir setiap modul difilter per kelas & jurusan (lihat PRD §5).
 

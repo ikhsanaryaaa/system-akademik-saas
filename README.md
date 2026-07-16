@@ -23,15 +23,16 @@ Draft. Requirements and design are defined; implementation follows the backend t
 |-------|------------|
 | Frontend | React with Vite (SPA), React Router |
 | Styling | Tailwind CSS |
-| Backend Runtime | Bun |
-| API Framework | Elysia (REST, type safe validation, Swagger/OpenAPI) |
+| Backend Language | Go (Golang) |
+| API Framework | Gin (REST router and middleware) |
 | Database | PostgreSQL |
-| ORM | Drizzle ORM |
+| ORM | GORM |
+| API Docs | Swagger/OpenAPI via swaggo |
 | Server | Ubuntu Linux |
 | Email | SMTP (password reset and system email) |
 | Integrations | WhatsApp Gateway, RFID Reader, SMTP |
 
-The architecture is API first. The React SPA talks to the Bun and Elysia backend over a REST API. There is no SSR because every page sits behind authentication and needs no SEO. PostgreSQL access goes through Drizzle ORM for type safety, and input validation plus API documentation rely on Elysia built in capabilities.
+The architecture is API first. The React SPA talks to the Go backend over a REST API. There is no SSR because every page sits behind authentication and needs no SEO. PostgreSQL access goes through GORM, request routing and middleware run on Gin, input validation uses Go struct validation, and API documentation is generated with swaggo.
 
 ## Roles
 
@@ -133,9 +134,9 @@ Android uses Lock Task Mode and Screen Pinning; iOS uses Guided Access and Autom
 Development follows a backend to REST API to frontend approach. For each module the order is:
 
 1. Business rules, define the process and the rules
-2. Database schema, design tables, relations, and indexes with Drizzle, then run the migration
-3. Validation, server side input rules using Elysia type safe schemas
-4. Endpoints, implement the REST API with Elysia on Bun
+2. Database schema, design tables, relations, and indexes with GORM models, then run the migration
+3. Validation, server side input rules using Go struct validation
+4. Endpoints, implement the REST API with Gin
 5. JSON response, a consistent response format
 6. Error handling, standard error and status codes
 7. Frontend, the React interface that consumes the API

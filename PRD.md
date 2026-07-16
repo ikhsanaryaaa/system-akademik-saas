@@ -259,20 +259,22 @@ Browser dan sistem CBT pemerintah (UNBK/ANBK/TKA):
 |-------|-----------|
 | Frontend | React + Vite (SPA), React Router untuk navigasi |
 | Styling | Tailwind CSS |
-| Runtime Backend | Bun |
-| Framework API | Elysia (REST API, validasi type-safe, Swagger/OpenAPI) |
+| Bahasa Backend | Go (Golang) |
+| Framework API | Gin (REST router & middleware) |
 | Database | PostgreSQL |
-| ORM / DB Layer | Drizzle ORM |
+| ORM / DB Layer | GORM |
+| Dokumentasi API | Swagger/OpenAPI via swaggo |
 | Server | Linux Ubuntu |
 | Email | SMTP (reset password & email sistem) |
 | Integrasi | WhatsApp Gateway, RFID Reader, SMTP |
 
 Arsitektur bersifat **API-first**: frontend React (Vite, SPA)
-berkomunikasi dengan backend (Bun + Elysia) melalui REST API. Aplikasi
+berkomunikasi dengan backend Go melalui REST API. Aplikasi
 frontend berupa Single Page Application tanpa SSR karena seluruh halaman
 berada di balik autentikasi (tidak memerlukan SEO). Akses ke PostgreSQL
-menggunakan Drizzle ORM yang type-safe. Validasi input dan dokumentasi API
-(Swagger/OpenAPI) memanfaatkan fitur bawaan Elysia.
+menggunakan GORM, routing dan middleware ditangani Gin, validasi input
+memakai struct validation Go, dan dokumentasi API (Swagger/OpenAPI)
+dihasilkan dengan swaggo.
 
 ### 6.1 Model Deployment & Konektivitas Aplikasi Mobile
 
@@ -305,10 +307,10 @@ Untuk setiap modul/fitur, urutan pengerjaannya adalah:
 
 1. **Alur bisnis** — definisikan proses dan aturan bisnis.
 2. **Struktur database** — rancang tabel, relasi, dan indeks menggunakan
-   skema Drizzle ORM, lalu jalankan migration.
+   model GORM, lalu jalankan migration.
 3. **Validasi** — aturan validasi input di sisi server memanfaatkan
-   skema/validasi type-safe bawaan Elysia.
-4. **Endpoint** — implementasi REST API dengan Elysia (Bun).
+   struct validation Go.
+4. **Endpoint** — implementasi REST API dengan Gin (Go).
 5. **Response JSON** — format respons yang konsisten.
 6. **Error handling** — penanganan error dan kode status yang standar.
 7. **Frontend** — implementasi antarmuka React yang mengonsumsi API.
