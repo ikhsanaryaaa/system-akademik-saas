@@ -59,7 +59,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">Manajemen User</h1>
         {can("user.create") && (
-          <button
+          <button type="button"
             onClick={openCreate}
             className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
           >
@@ -111,12 +111,12 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {can("user.update") && (
-                      <button onClick={() => openEdit(u)} className="text-primary hover:underline">
+                      <button type="button" onClick={() => openEdit(u)} className="text-primary hover:underline">
                         Edit
                       </button>
                     )}
                     {can("user.delete") && (
-                      <button
+                      <button type="button"
                         onClick={() => handleDelete(u.id)}
                         className="ml-3 text-danger hover:underline"
                       >

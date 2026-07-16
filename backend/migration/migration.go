@@ -24,6 +24,10 @@ var models = []interface{}{
 	&model.ClassSubject{},
 	&model.LessonSchedule{},
 	&model.AcademicCalendar{},
+	&model.AttendanceSetting{},
+	&model.RfidCard{},
+	&model.TeacherAttendance{},
+	&model.StudentAttendance{},
 }
 
 // Run menjalankan auto-migrate untuk seluruh model terdaftar.

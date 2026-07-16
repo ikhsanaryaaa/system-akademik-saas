@@ -105,7 +105,7 @@ export default function StudentsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">Siswa</h1>
         {can("master.create") && (
-          <button
+          <button type="button"
             onClick={openCreate}
             className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
           >
@@ -174,12 +174,12 @@ export default function StudentsPage() {
                   <td className="px-4 py-3">{s.class?.name ?? "-"}</td>
                   <td className="px-4 py-3 text-right">
                     {can("master.update") && (
-                      <button onClick={() => openEdit(s)} className="text-primary hover:underline">
+                      <button type="button" onClick={() => openEdit(s)} className="text-primary hover:underline">
                         Edit
                       </button>
                     )}
                     {can("master.delete") && (
-                      <button
+                      <button type="button"
                         onClick={() => handleDelete(s.id)}
                         className="ml-3 text-danger hover:underline"
                       >
@@ -197,7 +197,7 @@ export default function StudentsPage() {
       <div className="mt-4 flex items-center justify-between text-sm text-muted">
         <span>Total {total} siswa</span>
         <div className="flex gap-2">
-          <button
+          <button type="button"
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
             className="rounded-md border border-hairline px-3 py-1 disabled:opacity-50"

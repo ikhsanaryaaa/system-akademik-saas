@@ -47,6 +47,11 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	classSubjectHandler := handler.NewClassSubjectHandler(db)
 	lessonScheduleHandler := handler.NewLessonScheduleHandler(db)
 	academicCalendarHandler := handler.NewAcademicCalendarHandler(db)
+	attendanceSettingHandler := handler.NewAttendanceSettingHandler(db)
+	rfidCardHandler := handler.NewRfidCardHandler(db)
+	teacherAttendanceHandler := handler.NewTeacherAttendanceHandler(db)
+	studentAttendanceHandler := handler.NewStudentAttendanceHandler(db)
+	rfidTapHandler := handler.NewRfidTapHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -83,6 +88,27 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerCurriculumCRUD(auth, "/class-subjects", classSubjectHandler.List, classSubjectHandler.Create, classSubjectHandler.Update, classSubjectHandler.Delete)
 			registerCurriculumCRUD(auth, "/lesson-schedules", lessonScheduleHandler.List, lessonScheduleHandler.Create, lessonScheduleHandler.Update, lessonScheduleHandler.Delete)
 			registerCurriculumCRUD(auth, "/academic-calendar", academicCalendarHandler.List, academicCalendarHandler.Create, academicCalendarHandler.Update, academicCalendarHandler.Delete)
+
+			// Absensi.
+			readAtt := middleware.RequirePermission("attendance.read")
+			writeAtt := middleware.RequirePermission("attendance.create")
+			manageAtt := middleware.RequirePermission("attendance.manage")
+
+			auth.GET("/attendance/setting", readAtt, attendanceSettingHandler.Get)
+			auth.PUT("/attendance/setting", manageAtt, attendanceSettingHandler.Save)
+
+			auth.GET("/attendance/rfid-cards", manageAtt, rfidCardHandler.List)
+			auth.POST("/attendance/rfid-cards", manageAtt, rfidCardHandler.Create)
+			auth.DELETE("/attendance/rfid-cards/:id", manageAtt, rfidCardHandler.Delete)
+			auth.POST("/attendance/rfid-tap", writeAtt, rfidTapHandler.Tap)
+
+			auth.GET("/attendance/teachers", readAtt, teacherAttendanceHandler.List)
+			auth.POST("/attendance/teachers", writeAtt, teacherAttendanceHandler.Mark)
+			auth.POST("/attendance/teachers/:id/checkout", writeAtt, teacherAttendanceHandler.Checkout)
+
+			auth.GET("/attendance/students/roster", readAtt, studentAttendanceHandler.Roster)
+			auth.POST("/attendance/students", writeAtt, studentAttendanceHandler.SaveBulk)
+			auth.GET("/attendance/students/report", readAtt, studentAttendanceHandler.Report)
 		}
 	}
 
