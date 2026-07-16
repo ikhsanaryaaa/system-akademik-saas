@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "doctor": "react-doctor"
   },
   "dependencies": {
     "axios": "^1.7.7",
@@ -22,6 +23,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.13.0",
     "postcss": "^8.4.47",
+    "react-doctor": "^0.7.8",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"
