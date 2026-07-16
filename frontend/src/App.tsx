@@ -21,6 +21,10 @@ import StudentAttendancePage from "./pages/attendance/StudentAttendancePage";
 import TeacherAttendancePage from "./pages/attendance/TeacherAttendancePage";
 import RfidCardsPage from "./pages/attendance/RfidCardsPage";
 import AttendanceReportPage from "./pages/attendance/AttendanceReportPage";
+import AssessmentsPage from "./pages/grading/AssessmentsPage";
+import AssessmentScoresPage from "./pages/grading/AssessmentScoresPage";
+import LegerPage from "./pages/grading/LegerPage";
+import ReportCardPage from "./pages/grading/ReportCardPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -44,6 +48,15 @@ function curriculumRoute(element: ReactNode) {
 function attendanceRoute(element: ReactNode) {
   return (
     <RequireAuth permission="attendance.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// gradingRoute membungkus halaman penilaian dengan guard permission grading.read.
+function gradingRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="grading.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -104,6 +117,11 @@ export default function App() {
       <Route path="/attendance/teachers" element={attendanceRoute(<TeacherAttendancePage />)} />
       <Route path="/attendance/rfid-cards" element={attendanceRoute(<RfidCardsPage />)} />
       <Route path="/attendance/report" element={attendanceRoute(<AttendanceReportPage />)} />
+
+      <Route path="/grading/assessments" element={gradingRoute(<AssessmentsPage />)} />
+      <Route path="/grading/assessments/:id/scores" element={gradingRoute(<AssessmentScoresPage />)} />
+      <Route path="/grading/leger" element={gradingRoute(<LegerPage />)} />
+      <Route path="/grading/report-card" element={gradingRoute(<ReportCardPage />)} />
     </Routes>
   );
 }

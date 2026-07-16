@@ -28,6 +28,9 @@ var models = []interface{}{
 	&model.RfidCard{},
 	&model.TeacherAttendance{},
 	&model.StudentAttendance{},
+	&model.Assessment{},
+	&model.AssessmentScore{},
+	&model.ReportCardScore{},
 }
 
 // Run menjalankan auto-migrate untuk seluruh model terdaftar.
