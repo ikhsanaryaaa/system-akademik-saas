@@ -57,6 +57,28 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "Kesiswaan",
+    items: [
+      { label: "PPDB", to: "/kesiswaan/admissions", permission: "kesiswaan.read" },
+      { label: "Pembinaan", to: "/kesiswaan/coaching", permission: "kesiswaan.read" },
+      { label: "Bakat dan Minat", to: "/kesiswaan/talent", permission: "kesiswaan.read" },
+      { label: "Kegiatan", to: "/kesiswaan/activities", permission: "kesiswaan.read" },
+    ],
+  },
+  {
+    label: "Bimbingan Konseling",
+    items: [
+      { label: "Jenis Pelanggaran", to: "/bk/violation-types", permission: "bk.read" },
+      { label: "Agenda BK", to: "/bk/agenda", permission: "bk.read" },
+      { label: "Pelanggaran", to: "/bk/violations", permission: "bk.read" },
+      { label: "Sesi Konseling", to: "/bk/sessions", permission: "bk.read" },
+      { label: "Home Visit", to: "/bk/home-visits", permission: "bk.read" },
+      { label: "Prestasi", to: "/bk/achievements", permission: "bk.read" },
+      { label: "Alumni", to: "/bk/alumni", permission: "bk.read" },
+      { label: "Buku Siswa", to: "/bk/student-book", permission: "bk.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },

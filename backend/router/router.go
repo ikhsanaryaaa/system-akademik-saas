@@ -55,6 +55,18 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	assessmentHandler := handler.NewAssessmentHandler(db)
 	assessmentScoreHandler := handler.NewAssessmentScoreHandler(db)
 	reportCardHandler := handler.NewReportCardHandler(db)
+	admissionHandler := handler.NewAdmissionHandler(db)
+	studentCoachingHandler := handler.NewStudentCoachingHandler(db)
+	talentDevelopmentHandler := handler.NewTalentDevelopmentHandler(db)
+	studentActivityHandler := handler.NewStudentActivityHandler(db)
+	violationTypeHandler := handler.NewViolationTypeHandler(db)
+	counselingAgendaHandler := handler.NewCounselingAgendaHandler(db)
+	violationRecordHandler := handler.NewViolationRecordHandler(db)
+	counselingSessionHandler := handler.NewCounselingSessionHandler(db)
+	homeVisitHandler := handler.NewHomeVisitHandler(db)
+	achievementHandler := handler.NewAchievementHandler(db)
+	alumniHandler := handler.NewAlumniHandler(db)
+	studentBookHandler := handler.NewStudentBookHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -127,6 +139,24 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.POST("/report-cards", writeGrade, reportCardHandler.Save)
 			auth.GET("/report-cards/leger", readGrade, reportCardHandler.Leger)
 			auth.GET("/report-cards/student", readGrade, reportCardHandler.ReportCard)
+
+			// Kesiswaan.
+			registerKesiswaanCRUD(auth, "/admissions", admissionHandler.List, admissionHandler.Create, admissionHandler.Update, admissionHandler.Delete)
+			registerKesiswaanCRUD(auth, "/student-coaching", studentCoachingHandler.List, studentCoachingHandler.Create, studentCoachingHandler.Update, studentCoachingHandler.Delete)
+			registerKesiswaanCRUD(auth, "/talent-development", talentDevelopmentHandler.List, talentDevelopmentHandler.Create, talentDevelopmentHandler.Update, talentDevelopmentHandler.Delete)
+			registerKesiswaanCRUD(auth, "/student-activities", studentActivityHandler.List, studentActivityHandler.Create, studentActivityHandler.Update, studentActivityHandler.Delete)
+
+			// Bimbingan Konseling.
+			registerBkCRUD(auth, "/violation-types", violationTypeHandler.List, violationTypeHandler.Create, violationTypeHandler.Update, violationTypeHandler.Delete)
+			registerBkCRUD(auth, "/counseling-agenda", counselingAgendaHandler.List, counselingAgendaHandler.Create, counselingAgendaHandler.Update, counselingAgendaHandler.Delete)
+			registerBkCRUD(auth, "/violation-records", violationRecordHandler.List, violationRecordHandler.Create, violationRecordHandler.Update, violationRecordHandler.Delete)
+			registerBkCRUD(auth, "/counseling-sessions", counselingSessionHandler.List, counselingSessionHandler.Create, counselingSessionHandler.Update, counselingSessionHandler.Delete)
+			registerBkCRUD(auth, "/home-visits", homeVisitHandler.List, homeVisitHandler.Create, homeVisitHandler.Update, homeVisitHandler.Delete)
+			registerBkCRUD(auth, "/achievements", achievementHandler.List, achievementHandler.Create, achievementHandler.Update, achievementHandler.Delete)
+			registerBkCRUD(auth, "/alumni", alumniHandler.List, alumniHandler.Create, alumniHandler.Update, alumniHandler.Delete)
+
+			auth.PUT("/violation-records/:id/follow-up", middleware.RequirePermission("bk.update"), violationRecordHandler.FollowUp)
+			auth.GET("/student-book", middleware.RequirePermission("bk.read"), studentBookHandler.Book)
 		}
 	}
 
@@ -149,4 +179,22 @@ func registerMasterCRUD(g *gin.RouterGroup, path string, list, create, update, d
 	g.POST(path, middleware.RequirePermission("master.create"), create)
 	g.PUT(path+"/:id", middleware.RequirePermission("master.update"), update)
 	g.DELETE(path+"/:id", middleware.RequirePermission("master.delete"), del)
+}
+
+// registerKesiswaanCRUD mendaftarkan route CRUD untuk entitas kesiswaan,
+// dengan permission kesiswaan.read untuk baca dan kesiswaan.create/update/delete untuk tulis.
+func registerKesiswaanCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("kesiswaan.read"), list)
+	g.POST(path, middleware.RequirePermission("kesiswaan.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("kesiswaan.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("kesiswaan.delete"), del)
+}
+
+// registerBkCRUD mendaftarkan route CRUD untuk entitas bimbingan konseling,
+// dengan permission bk.read untuk baca dan bk.create/update/delete untuk tulis.
+func registerBkCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("bk.read"), list)
+	g.POST(path, middleware.RequirePermission("bk.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("bk.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("bk.delete"), del)
 }
