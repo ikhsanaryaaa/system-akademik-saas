@@ -17,6 +17,10 @@ import SubjectsPage from "./pages/curriculum/SubjectsPage";
 import ClassSubjectsPage from "./pages/curriculum/ClassSubjectsPage";
 import LessonSchedulesPage from "./pages/curriculum/LessonSchedulesPage";
 import AcademicCalendarPage from "./pages/curriculum/AcademicCalendarPage";
+import StudentAttendancePage from "./pages/attendance/StudentAttendancePage";
+import TeacherAttendancePage from "./pages/attendance/TeacherAttendancePage";
+import RfidCardsPage from "./pages/attendance/RfidCardsPage";
+import AttendanceReportPage from "./pages/attendance/AttendanceReportPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -31,6 +35,15 @@ function masterRoute(element: ReactNode) {
 function curriculumRoute(element: ReactNode) {
   return (
     <RequireAuth permission="curriculum.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// attendanceRoute membungkus halaman absensi dengan guard permission attendance.read.
+function attendanceRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="attendance.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -86,6 +99,11 @@ export default function App() {
       <Route path="/curriculum/class-subjects" element={curriculumRoute(<ClassSubjectsPage />)} />
       <Route path="/curriculum/schedules" element={curriculumRoute(<LessonSchedulesPage />)} />
       <Route path="/curriculum/calendar" element={curriculumRoute(<AcademicCalendarPage />)} />
+
+      <Route path="/attendance/students" element={attendanceRoute(<StudentAttendancePage />)} />
+      <Route path="/attendance/teachers" element={attendanceRoute(<TeacherAttendancePage />)} />
+      <Route path="/attendance/rfid-cards" element={attendanceRoute(<RfidCardsPage />)} />
+      <Route path="/attendance/report" element={attendanceRoute(<AttendanceReportPage />)} />
     </Routes>
   );
 }

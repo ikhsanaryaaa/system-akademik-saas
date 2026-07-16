@@ -40,6 +40,15 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "Absensi",
+    items: [
+      { label: "Absensi Siswa", to: "/attendance/students", permission: "attendance.read" },
+      { label: "Absensi Guru", to: "/attendance/teachers", permission: "attendance.read" },
+      { label: "Kartu RFID", to: "/attendance/rfid-cards", permission: "attendance.manage" },
+      { label: "Laporan Absensi", to: "/attendance/report", permission: "attendance.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },
