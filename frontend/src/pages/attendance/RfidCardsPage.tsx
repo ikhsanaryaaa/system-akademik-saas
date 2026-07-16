@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useReducer, useState, type FormEvent } from "react";
 import { http, type ApiResponse } from "../../lib/http";
 import { simpleList, paginatedList } from "../../lib/master";
 import type { Teacher } from "../../lib/curriculum";
@@ -10,6 +10,54 @@ interface StudentOption {
   name: string;
 }
 
+// State form kartu dikelola sebagai satu unit karena field-nya berubah bersamaan
+// (buka form, ganti field, tampilkan error). Satu action menggambarkan tiap transisi.
+type OwnerType = "student" | "teacher";
+
+interface FormState {
+  open: boolean;
+  uid: string;
+  ownerType: OwnerType;
+  ownerId: string;
+  error: string;
+}
+
+type FormAction =
+  | { type: "open" }
+  | { type: "close" }
+  | { type: "setUid"; value: string }
+  | { type: "setOwnerType"; value: OwnerType }
+  | { type: "setOwnerId"; value: string }
+  | { type: "setError"; value: string };
+
+const initialForm: FormState = {
+  open: false,
+  uid: "",
+  ownerType: "student",
+  ownerId: "",
+  error: "",
+};
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case "open":
+      return { ...initialForm, open: true };
+    case "close":
+      return { ...state, open: false };
+    case "setUid":
+      return { ...state, uid: action.value };
+    case "setOwnerType":
+      // Ganti tipe pemilik mereset pilihan pemilik.
+      return { ...state, ownerType: action.value, ownerId: "" };
+    case "setOwnerId":
+      return { ...state, ownerId: action.value };
+    case "setError":
+      return { ...state, error: action.value };
+    default:
+      return state;
+  }
+}
+
 export default function RfidCardsPage() {
   const { can } = useAuth();
   const [cards, setCards] = useState<RfidCard[]>([]);
@@ -17,11 +65,8 @@ export default function RfidCardsPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [open, setOpen] = useState(false);
-  const [uid, setUid] = useState("");
-  const [ownerType, setOwnerType] = useState<"student" | "teacher">("student");
-  const [ownerId, setOwnerId] = useState("");
-  const [error, setError] = useState("");
+  const [form, dispatch] = useReducer(formReducer, initialForm);
+  const { open, uid, ownerType, ownerId, error } = form;
 
   async function load() {
     setLoading(true);
@@ -45,25 +90,21 @@ export default function RfidCardsPage() {
   }, []);
 
   function openCreate() {
-    setUid("");
-    setOwnerType("student");
-    setOwnerId("");
-    setError("");
-    setOpen(true);
+    dispatch({ type: "open" });
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    dispatch({ type: "setError", value: "" });
     const body: Record<string, string> = { uid };
     if (ownerType === "student") body.student_id = ownerId;
     else body.teacher_id = ownerId;
     try {
       await http.post("/attendance/rfid-cards", body);
-      setOpen(false);
+      dispatch({ type: "close" });
       load();
     } catch {
-      setError("Gagal menyimpan kartu, pastikan UID unik dan pemilik dipilih");
+      dispatch({ type: "setError", value: "Gagal menyimpan kartu, pastikan UID unik dan pemilik dipilih" });
     }
   }
 
@@ -145,7 +186,7 @@ export default function RfidCardsPage() {
                 <input
                   id="rfid-uid"
                   value={uid}
-                  onChange={(e) => setUid(e.target.value)}
+                  onChange={(e) => dispatch({ type: "setUid", value: e.target.value })}
                   required
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
                 />
@@ -157,10 +198,7 @@ export default function RfidCardsPage() {
                 <select
                   id="rfid-owner-type"
                   value={ownerType}
-                  onChange={(e) => {
-                    setOwnerType(e.target.value as "student" | "teacher");
-                    setOwnerId("");
-                  }}
+                  onChange={(e) => dispatch({ type: "setOwnerType", value: e.target.value as OwnerType })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
                 >
                   <option value="student">Siswa</option>
@@ -174,7 +212,7 @@ export default function RfidCardsPage() {
                 <select
                   id="rfid-owner"
                   value={ownerId}
-                  onChange={(e) => setOwnerId(e.target.value)}
+                  onChange={(e) => dispatch({ type: "setOwnerId", value: e.target.value })}
                   required
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
                 >
@@ -191,7 +229,7 @@ export default function RfidCardsPage() {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={() => dispatch({ type: "close" })}
                 className="h-[38px] rounded-md border border-hairline px-4 text-sm text-body hover:bg-surface-soft"
               >
                 Batal
