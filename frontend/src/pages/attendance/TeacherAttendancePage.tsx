@@ -19,7 +19,7 @@ function timeOnly(v?: string): string {
 export default function TeacherAttendancePage() {
   const { can } = useAuth();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(() => today());
   const [rows, setRows] = useState<TeacherAttendanceRow[]>([]);
   const [selTeacher, setSelTeacher] = useState("");
   const [selStatus, setSelStatus] = useState<AttendanceStatus>("hadir");
@@ -68,8 +68,11 @@ export default function TeacherAttendancePage() {
 
       <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
         <div>
-          <label className="block text-sm font-medium text-body">Tanggal</label>
+          <label htmlFor="teacher-att-date" className="block text-sm font-medium text-body">
+            Tanggal
+          </label>
           <input
+            id="teacher-att-date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
@@ -79,8 +82,11 @@ export default function TeacherAttendancePage() {
         {can("attendance.create") && (
           <>
             <div>
-              <label className="block text-sm font-medium text-body">Guru</label>
+              <label htmlFor="teacher-att-teacher" className="block text-sm font-medium text-body">
+                Guru
+              </label>
               <select
+                id="teacher-att-teacher"
                 value={selTeacher}
                 onChange={(e) => setSelTeacher(e.target.value)}
                 className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"
@@ -94,8 +100,11 @@ export default function TeacherAttendancePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-body">Status</label>
+              <label htmlFor="teacher-att-status" className="block text-sm font-medium text-body">
+                Status
+              </label>
               <select
+                id="teacher-att-status"
                 value={selStatus}
                 onChange={(e) => setSelStatus(e.target.value as AttendanceStatus)}
                 className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm capitalize"

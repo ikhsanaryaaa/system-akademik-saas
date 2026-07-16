@@ -14,7 +14,7 @@ export default function StudentAttendancePage() {
   const { can } = useAuth();
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [classId, setClassId] = useState("");
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(() => today());
   const [roster, setRoster] = useState<RosterRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -74,8 +74,11 @@ export default function StudentAttendancePage() {
 
       <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
         <div>
-          <label className="block text-sm font-medium text-body">Kelas</label>
+          <label htmlFor="student-att-class" className="block text-sm font-medium text-body">
+            Kelas
+          </label>
           <select
+            id="student-att-class"
             value={classId}
             onChange={(e) => setClassId(e.target.value)}
             className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"
@@ -89,8 +92,11 @@ export default function StudentAttendancePage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-body">Tanggal</label>
+          <label htmlFor="student-att-date" className="block text-sm font-medium text-body">
+            Tanggal
+          </label>
           <input
+            id="student-att-date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
@@ -149,6 +155,7 @@ export default function StudentAttendancePage() {
                       <td className="px-4 py-3">
                         {can("attendance.create") ? (
                           <select
+                            aria-label={`Status kehadiran ${r.name}`}
                             value={r.status}
                             onChange={(e) =>
                               setStatus(r.student_id, e.target.value as AttendanceStatus)
