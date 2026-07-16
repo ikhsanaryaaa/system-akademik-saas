@@ -3,12 +3,17 @@ package migration
 import (
 	"log"
 
+	"github.com/ikhsanaryaaa/system-akademik-saas/backend/model"
 	"gorm.io/gorm"
 )
 
 // models adalah daftar model GORM yang ikut auto-migrate.
-// Model bisnis ditambahkan di tahap berikutnya seiring modul dikerjakan.
-var models = []interface{}{}
+// Model bisnis lain ditambahkan seiring modul dikerjakan di tahap berikutnya.
+var models = []interface{}{
+	&model.Permission{},
+	&model.Role{},
+	&model.User{},
+}
 
 // Run menjalankan auto-migrate untuk seluruh model terdaftar.
 func Run(db *gorm.DB) error {
