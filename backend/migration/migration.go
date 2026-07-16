@@ -13,6 +13,13 @@ var models = []interface{}{
 	&model.Permission{},
 	&model.Role{},
 	&model.User{},
+	&model.AcademicYear{},
+	&model.GradeLevel{},
+	&model.Major{},
+	&model.Teacher{},
+	&model.Staff{},
+	&model.Class{},
+	&model.Student{},
 }
 
 // Run menjalankan auto-migrate untuk seluruh model terdaftar.

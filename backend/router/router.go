@@ -36,6 +36,13 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	authHandler := handler.NewAuthHandler(db, jwtManager)
 	userHandler := handler.NewUserHandler(db)
 	roleHandler := handler.NewRoleHandler(db)
+	academicYearHandler := handler.NewAcademicYearHandler(db)
+	gradeLevelHandler := handler.NewGradeLevelHandler(db)
+	majorHandler := handler.NewMajorHandler(db)
+	teacherHandler := handler.NewTeacherHandler(db)
+	staffHandler := handler.NewStaffHandler(db)
+	classHandler := handler.NewClassHandler(db)
+	studentHandler := handler.NewStudentHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -59,8 +66,25 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.POST("/users", middleware.RequirePermission("user.create"), userHandler.Create)
 			auth.PUT("/users/:id", middleware.RequirePermission("user.update"), userHandler.Update)
 			auth.DELETE("/users/:id", middleware.RequirePermission("user.delete"), userHandler.Delete)
+
+			registerMasterCRUD(auth, "/academic-years", academicYearHandler.List, academicYearHandler.Create, academicYearHandler.Update, academicYearHandler.Delete)
+			registerMasterCRUD(auth, "/grade-levels", gradeLevelHandler.List, gradeLevelHandler.Create, gradeLevelHandler.Update, gradeLevelHandler.Delete)
+			registerMasterCRUD(auth, "/majors", majorHandler.List, majorHandler.Create, majorHandler.Update, majorHandler.Delete)
+			registerMasterCRUD(auth, "/teachers", teacherHandler.List, teacherHandler.Create, teacherHandler.Update, teacherHandler.Delete)
+			registerMasterCRUD(auth, "/staff", staffHandler.List, staffHandler.Create, staffHandler.Update, staffHandler.Delete)
+			registerMasterCRUD(auth, "/classes", classHandler.List, classHandler.Create, classHandler.Update, classHandler.Delete)
+			registerMasterCRUD(auth, "/students", studentHandler.List, studentHandler.Create, studentHandler.Update, studentHandler.Delete)
 		}
 	}
 
 	return r
+}
+
+// registerMasterCRUD mendaftarkan route CRUD standar untuk entitas master data,
+// dengan permission master.read untuk baca dan master.create/update/delete untuk tulis.
+func registerMasterCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("master.read"), list)
+	g.POST(path, middleware.RequirePermission("master.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("master.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("master.delete"), del)
 }

@@ -34,21 +34,36 @@ type PermissionDef struct {
 	Description string
 }
 
-// Permission dasar untuk manajemen user. Permission modul lain
-// ditambahkan seiring modul dikerjakan di tahap berikutnya.
+// Permission dasar. Permission modul lain ditambahkan seiring modul dikerjakan.
 var Permissions = []PermissionDef{
 	{"user.read", "Melihat daftar dan detail user"},
 	{"user.create", "Membuat user baru"},
 	{"user.update", "Mengubah data user"},
 	{"user.delete", "Menghapus user"},
 	{"role.read", "Melihat daftar role dan permission"},
+
+	{"master.read", "Melihat data master"},
+	{"master.create", "Membuat data master"},
+	{"master.update", "Mengubah data master"},
+	{"master.delete", "Menghapus data master"},
 }
 
-// Permission yang dimiliki Administrator (seluruh permission dasar).
+// masterPermissionKeys mengembalikan seluruh key permission master data.
+func masterPermissionKeys() []string {
+	return []string{"master.read", "master.create", "master.update", "master.delete"}
+}
+
+// AdministratorPermissions mengembalikan seluruh permission (Administrator penuh).
 func AdministratorPermissions() []string {
 	keys := make([]string, 0, len(Permissions))
 	for _, p := range Permissions {
 		keys = append(keys, p.Key)
 	}
 	return keys
+}
+
+// TataUsahaPermissions mengembalikan permission untuk role Tata Usaha:
+// mengelola data master ditambah melihat user.
+func TataUsahaPermissions() []string {
+	return append(masterPermissionKeys(), "user.read")
 }
