@@ -1,4 +1,5 @@
-import CrudModulePage, { fmtDate, type CrudModuleConfig } from "../../components/CrudModulePage";
+import CrudModulePage, { type CrudModuleConfig } from "../../components/CrudModulePage";
+import { fmtDate } from "../../lib/format";
 
 const config: CrudModuleConfig = {
   title: "Pembinaan Kesiswaan",
