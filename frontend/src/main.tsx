@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
+import { AcademicYearProvider } from "./context/AcademicYearContext";
 import { applyBranding } from "./lib/branding";
 import "./index.css";
 
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <AcademicYearProvider>
+          <App />
+        </AcademicYearProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
