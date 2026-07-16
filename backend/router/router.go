@@ -52,6 +52,9 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	teacherAttendanceHandler := handler.NewTeacherAttendanceHandler(db)
 	studentAttendanceHandler := handler.NewStudentAttendanceHandler(db)
 	rfidTapHandler := handler.NewRfidTapHandler(db)
+	assessmentHandler := handler.NewAssessmentHandler(db)
+	assessmentScoreHandler := handler.NewAssessmentScoreHandler(db)
+	reportCardHandler := handler.NewReportCardHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -109,6 +112,21 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.GET("/attendance/students/roster", readAtt, studentAttendanceHandler.Roster)
 			auth.POST("/attendance/students", writeAtt, studentAttendanceHandler.SaveBulk)
 			auth.GET("/attendance/students/report", readAtt, studentAttendanceHandler.Report)
+
+			// Penilaian dan e-Raport.
+			readGrade := middleware.RequirePermission("grading.read")
+			writeGrade := middleware.RequirePermission("grading.create")
+
+			auth.GET("/assessments", readGrade, assessmentHandler.List)
+			auth.POST("/assessments", writeGrade, assessmentHandler.Create)
+			auth.PUT("/assessments/:id", writeGrade, assessmentHandler.Update)
+			auth.DELETE("/assessments/:id", writeGrade, assessmentHandler.Delete)
+			auth.GET("/assessments/:id/scores", readGrade, assessmentScoreHandler.Roster)
+			auth.POST("/assessments/:id/scores", writeGrade, assessmentScoreHandler.SaveBulk)
+
+			auth.POST("/report-cards", writeGrade, reportCardHandler.Save)
+			auth.GET("/report-cards/leger", readGrade, reportCardHandler.Leger)
+			auth.GET("/report-cards/student", readGrade, reportCardHandler.ReportCard)
 		}
 	}
 

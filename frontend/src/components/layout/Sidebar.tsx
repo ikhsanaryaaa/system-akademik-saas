@@ -49,6 +49,14 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "Penilaian",
+    items: [
+      { label: "Penilaian", to: "/grading/assessments", permission: "grading.read" },
+      { label: "Leger Nilai", to: "/grading/leger", permission: "grading.read" },
+      { label: "e-Raport", to: "/grading/report-card", permission: "grading.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },
