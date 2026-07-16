@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useReducer, useState, type FormEvent } from "react";
 import { http, type ApiResponse } from "../../lib/http";
 import { simpleList, paginatedList, type StudentRow } from "../../lib/master";
 import type { Subject } from "../../lib/curriculum";
@@ -9,6 +9,47 @@ interface AcademicYear {
   id: string;
   name: string;
   is_active: boolean;
+}
+
+// State form input nilai raport, dikelompokkan karena selalu berubah bersama.
+interface FormState {
+  subjectId: string;
+  knowledge: number;
+  skill: number;
+  description: string;
+  message: string;
+}
+
+type FormAction =
+  | { type: "setField"; field: "subjectId" | "description"; value: string }
+  | { type: "setScore"; field: "knowledge" | "skill"; value: number }
+  | { type: "submitStart" }
+  | { type: "saved" }
+  | { type: "error" };
+
+const initialForm: FormState = {
+  subjectId: "",
+  knowledge: 0,
+  skill: 0,
+  description: "",
+  message: "",
+};
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case "setField":
+      return { ...state, [action.field]: action.value };
+    case "setScore":
+      return { ...state, [action.field]: action.value };
+    case "submitStart":
+      return { ...state, message: "" };
+    case "saved":
+      return { ...initialForm, message: "Nilai raport disimpan" };
+    case "error":
+      return { ...state, message: "Gagal menyimpan nilai raport, pastikan rentang 0 sampai 100" };
+    default:
+      return state;
+  }
 }
 
 export default function ReportCardPage() {
@@ -22,11 +63,8 @@ export default function ReportCardPage() {
   const [loading, setLoading] = useState(false);
 
   // Form input nilai raport.
-  const [subjectId, setSubjectId] = useState("");
-  const [knowledge, setKnowledge] = useState(0);
-  const [skill, setSkill] = useState(0);
-  const [description, setDescription] = useState("");
-  const [message, setMessage] = useState("");
+  const [form, dispatch] = useReducer(formReducer, initialForm);
+  const { subjectId, knowledge, skill, description, message } = form;
 
   useEffect(() => {
     paginatedList<StudentRow>("/students", { per_page: 100 }).then((res) => setStudents(res.items));
@@ -59,7 +97,7 @@ export default function ReportCardPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setMessage("");
+    dispatch({ type: "submitStart" });
     const activeYear = years.find((y) => y.is_active) ?? years[0];
     try {
       await http.post("/report-cards", {
@@ -72,14 +110,10 @@ export default function ReportCardPage() {
         skill_score: Number(skill),
         description,
       });
-      setMessage("Nilai raport disimpan");
-      setSubjectId("");
-      setKnowledge(0);
-      setSkill(0);
-      setDescription("");
+      dispatch({ type: "saved" });
       load();
     } catch {
-      setMessage("Gagal menyimpan nilai raport, pastikan rentang 0 sampai 100");
+      dispatch({ type: "error" });
     }
   }
 
@@ -171,7 +205,7 @@ export default function ReportCardPage() {
               <select
                 id="rc-subject"
                 value={subjectId}
-                onChange={(e) => setSubjectId(e.target.value)}
+                onChange={(e) => dispatch({ type: "setField", field: "subjectId", value: e.target.value })}
                 required
                 className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
               >
@@ -195,7 +229,7 @@ export default function ReportCardPage() {
                   max={100}
                   step="0.1"
                   value={knowledge}
-                  onChange={(e) => setKnowledge(Number(e.target.value))}
+                  onChange={(e) => dispatch({ type: "setScore", field: "knowledge", value: Number(e.target.value) })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm font-mono"
                 />
               </div>
@@ -210,7 +244,7 @@ export default function ReportCardPage() {
                   max={100}
                   step="0.1"
                   value={skill}
-                  onChange={(e) => setSkill(Number(e.target.value))}
+                  onChange={(e) => dispatch({ type: "setScore", field: "skill", value: Number(e.target.value) })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm font-mono"
                 />
               </div>
@@ -222,7 +256,7 @@ export default function ReportCardPage() {
               <textarea
                 id="rc-desc"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => dispatch({ type: "setField", field: "description", value: e.target.value })}
                 rows={2}
                 className="mt-1 w-full rounded-md border border-hairline px-3 py-2 text-sm outline-none focus:border-primary"
               />
