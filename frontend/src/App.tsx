@@ -25,6 +25,18 @@ import AssessmentsPage from "./pages/grading/AssessmentsPage";
 import AssessmentScoresPage from "./pages/grading/AssessmentScoresPage";
 import LegerPage from "./pages/grading/LegerPage";
 import ReportCardPage from "./pages/grading/ReportCardPage";
+import AdmissionsPage from "./pages/kesiswaan/AdmissionsPage";
+import CoachingPage from "./pages/kesiswaan/CoachingPage";
+import TalentPage from "./pages/kesiswaan/TalentPage";
+import ActivitiesPage from "./pages/kesiswaan/ActivitiesPage";
+import ViolationTypesPage from "./pages/bk/ViolationTypesPage";
+import AgendaPage from "./pages/bk/AgendaPage";
+import ViolationRecordsPage from "./pages/bk/ViolationRecordsPage";
+import CounselingSessionsPage from "./pages/bk/CounselingSessionsPage";
+import HomeVisitsPage from "./pages/bk/HomeVisitsPage";
+import AchievementsPage from "./pages/bk/AchievementsPage";
+import AlumniPage from "./pages/bk/AlumniPage";
+import StudentBookPage from "./pages/bk/StudentBookPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -57,6 +69,24 @@ function attendanceRoute(element: ReactNode) {
 function gradingRoute(element: ReactNode) {
   return (
     <RequireAuth permission="grading.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// kesiswaanRoute membungkus halaman kesiswaan dengan guard permission kesiswaan.read.
+function kesiswaanRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="kesiswaan.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// bkRoute membungkus halaman bimbingan konseling dengan guard permission bk.read.
+function bkRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="bk.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -122,6 +152,20 @@ export default function App() {
       <Route path="/grading/assessments/:id/scores" element={gradingRoute(<AssessmentScoresPage />)} />
       <Route path="/grading/leger" element={gradingRoute(<LegerPage />)} />
       <Route path="/grading/report-card" element={gradingRoute(<ReportCardPage />)} />
+
+      <Route path="/kesiswaan/admissions" element={kesiswaanRoute(<AdmissionsPage />)} />
+      <Route path="/kesiswaan/coaching" element={kesiswaanRoute(<CoachingPage />)} />
+      <Route path="/kesiswaan/talent" element={kesiswaanRoute(<TalentPage />)} />
+      <Route path="/kesiswaan/activities" element={kesiswaanRoute(<ActivitiesPage />)} />
+
+      <Route path="/bk/violation-types" element={bkRoute(<ViolationTypesPage />)} />
+      <Route path="/bk/agenda" element={bkRoute(<AgendaPage />)} />
+      <Route path="/bk/violations" element={bkRoute(<ViolationRecordsPage />)} />
+      <Route path="/bk/sessions" element={bkRoute(<CounselingSessionsPage />)} />
+      <Route path="/bk/home-visits" element={bkRoute(<HomeVisitsPage />)} />
+      <Route path="/bk/achievements" element={bkRoute(<AchievementsPage />)} />
+      <Route path="/bk/alumni" element={bkRoute(<AlumniPage />)} />
+      <Route path="/bk/student-book" element={bkRoute(<StudentBookPage />)} />
     </Routes>
   );
 }

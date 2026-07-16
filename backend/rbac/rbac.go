@@ -58,6 +58,16 @@ var Permissions = []PermissionDef{
 
 	{"grading.read", "Melihat penilaian, leger, dan raport"},
 	{"grading.create", "Mengelola penilaian dan mengisi nilai"},
+
+	{"kesiswaan.read", "Melihat data kesiswaan"},
+	{"kesiswaan.create", "Membuat data kesiswaan"},
+	{"kesiswaan.update", "Mengubah data kesiswaan"},
+	{"kesiswaan.delete", "Menghapus data kesiswaan"},
+
+	{"bk.read", "Melihat data bimbingan konseling"},
+	{"bk.create", "Membuat data bimbingan konseling"},
+	{"bk.update", "Mengubah data bimbingan konseling"},
+	{"bk.delete", "Menghapus data bimbingan konseling"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -88,17 +98,41 @@ func GuruPermissions() []string {
 		"attendance.read", "attendance.create",
 		"grading.read", "grading.create",
 		"master.read", "curriculum.read",
+		"bk.read",
 	}
 }
 
-// WaliKelasPermissions sama dengan Guru pada tahap ini:
-// mencatat absensi kelas, mengelola penilaian, dan membaca data master serta kurikulum.
+// WaliKelasPermissions sama dengan Guru pada tahap ini, ditambah membaca data BK:
+// mencatat absensi kelas, mengelola penilaian, membaca data master, kurikulum, dan BK.
 func WaliKelasPermissions() []string {
 	return []string{
 		"attendance.read", "attendance.create",
 		"grading.read", "grading.create",
 		"master.read", "curriculum.read",
+		"bk.read",
 	}
+}
+
+// kesiswaanPermissionKeys mengembalikan seluruh key permission kesiswaan.
+func kesiswaanPermissionKeys() []string {
+	return []string{"kesiswaan.read", "kesiswaan.create", "kesiswaan.update", "kesiswaan.delete"}
+}
+
+// bkPermissionKeys mengembalikan seluruh key permission bimbingan konseling.
+func bkPermissionKeys() []string {
+	return []string{"bk.read", "bk.create", "bk.update", "bk.delete"}
+}
+
+// WakilKesiswaanPermissions mengembalikan permission untuk role Wakil Kesiswaan:
+// mengelola data kesiswaan ditambah membaca data master sebagai referensi.
+func WakilKesiswaanPermissions() []string {
+	return append(kesiswaanPermissionKeys(), "master.read")
+}
+
+// BimbinganKonselingPermissions mengembalikan permission untuk role Bimbingan Konseling:
+// mengelola data BK ditambah membaca data master sebagai referensi.
+func BimbinganKonselingPermissions() []string {
+	return append(bkPermissionKeys(), "master.read")
 }
 
 // curriculumPermissionKeys mengembalikan seluruh key permission kurikulum.
