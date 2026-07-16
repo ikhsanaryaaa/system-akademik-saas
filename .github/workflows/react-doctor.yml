@@ -1,0 +1,49 @@
+# React Doctor mendeteksi masalah security, performance, correctness,
+# accessibility, bundle-size, dan architecture pada codebase React.
+#
+# Docs: https://www.react.doctor/ci
+# Source: https://github.com/millionco/react-doctor
+
+name: React Doctor
+
+on:
+  # Memindai file yang berubah pada PR dan memberi sticky comment berisi issue baru relatif terhadap merge base.
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  # Memindai main pada tiap push untuk memantau tren health score dan menangkap regresi.
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+
+# Membatalkan scan yang masih berjalan untuk PR atau branch yang sama saat commit baru datang.
+concurrency:
+  group: react-doctor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  react-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 memberi React Doctor riwayat git lengkap untuk mencari merge base terhadap target branch.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: millionco/react-doctor@v2
+        # Advisory secara default: React Doctor melaporkan temuan pada tiap PR
+        # (sticky summary comment, inline review comment, dan commit status berisi
+        # health score) tanpa menggagalkan check. Frontend berada di folder frontend,
+        # jadi directory diarahkan ke sana.
+        with:
+          directory: frontend
+        #   blocking: error          # Level gate: "none" (advisory, default) | "warning" | "error"
+        #   scope: full              # Pada PR, scan seluruh project, bukan hanya file yang berubah
+        #   comment: false           # Matikan sticky PR summary comment
+        #   review-comments: false   # Matikan inline review comment
+        #   commit-status: false     # Matikan commit status
+        #   version: "0.7.8"         # Pin ke versi react-doctor tertentu
