@@ -7,39 +7,74 @@ interface MenuItem {
   permission?: string;
 }
 
-// Daftar menu. Item dengan permission hanya tampil bila user punya permission itu.
-// Menu modul lain ditambahkan seiring modul dikerjakan di tahap berikutnya.
-const menu: MenuItem[] = [
-  { label: "Dashboard", to: "/" },
-  { label: "Manajemen User", to: "/users", permission: "user.read" },
-  { label: "Ganti Password", to: "/change-password" },
+interface MenuGroup {
+  label?: string;
+  items: MenuItem[];
+}
+
+// Menu dikelompokkan. Item dengan permission hanya tampil bila user berwenang.
+// Grup modul lain ditambahkan seiring modul dikerjakan di tahap berikutnya.
+const groups: MenuGroup[] = [
+  {
+    items: [{ label: "Dashboard", to: "/" }],
+  },
+  {
+    label: "Master Data",
+    items: [
+      { label: "Tahun Ajaran", to: "/master/academic-years", permission: "master.read" },
+      { label: "Tingkatan", to: "/master/grade-levels", permission: "master.read" },
+      { label: "Jurusan", to: "/master/majors", permission: "master.read" },
+      { label: "Kelas", to: "/master/classes", permission: "master.read" },
+      { label: "Pendidik", to: "/master/teachers", permission: "master.read" },
+      { label: "Tenaga Non-Kependidikan", to: "/master/staff", permission: "master.read" },
+      { label: "Siswa", to: "/master/students", permission: "master.read" },
+    ],
+  },
+  {
+    label: "Sistem",
+    items: [
+      { label: "Manajemen User", to: "/users", permission: "user.read" },
+      { label: "Ganti Password", to: "/change-password" },
+    ],
+  },
 ];
 
 export default function Sidebar() {
   const { can } = useAuth();
 
-  const visible = menu.filter((m) => !m.permission || can(m.permission));
-
   return (
     <aside className="w-[260px] shrink-0 bg-sidebar text-on-sidebar min-h-screen">
       <div className="h-[60px] flex items-center px-4 text-white font-semibold">SIM Sekolah</div>
       <nav className="px-3 py-2">
-        {visible.map((m) => (
-          <NavLink
-            key={m.to}
-            to={m.to}
-            end={m.to === "/"}
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2.5 text-sm ${
-                isActive
-                  ? "bg-primary font-semibold text-white"
-                  : "text-on-sidebar-muted hover:bg-sidebar-elevated"
-              }`
-            }
-          >
-            {m.label}
-          </NavLink>
-        ))}
+        {groups.map((group, gi) => {
+          const visible = group.items.filter((m) => !m.permission || can(m.permission));
+          if (visible.length === 0) return null;
+          return (
+            <div key={gi} className="mb-2">
+              {group.label && (
+                <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-on-sidebar-muted">
+                  {group.label}
+                </p>
+              )}
+              {visible.map((m) => (
+                <NavLink
+                  key={m.to}
+                  to={m.to}
+                  end={m.to === "/"}
+                  className={({ isActive }) =>
+                    `block rounded-md px-3 py-2.5 text-sm ${
+                      isActive
+                        ? "bg-primary font-semibold text-white"
+                        : "text-on-sidebar-muted hover:bg-sidebar-elevated"
+                    }`
+                  }
+                >
+                  {m.label}
+                </NavLink>
+              ))}
+            </div>
+          );
+        })}
       </nav>
     </aside>
   );

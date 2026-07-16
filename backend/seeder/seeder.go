@@ -40,12 +40,6 @@ func seedPermissions(db *gorm.DB) error {
 }
 
 func seedRoles(db *gorm.DB) error {
-	// Kumpulkan permission Administrator untuk dilampirkan.
-	var adminPerms []model.Permission
-	if err := db.Where("key IN ?", rbac.AdministratorPermissions()).Find(&adminPerms).Error; err != nil {
-		return err
-	}
-
 	for _, r := range rbac.Roles {
 		var role model.Role
 		err := db.Where("slug = ?", r.Slug).First(&role).Error
@@ -58,9 +52,21 @@ func seedRoles(db *gorm.DB) error {
 			return err
 		}
 
-		// Administrator mendapat seluruh permission dasar.
-		if r.Slug == "administrator" {
-			if err := db.Model(&role).Association("Permissions").Replace(adminPerms); err != nil {
+		// Tetapkan permission per role sesuai kewenangannya.
+		var keys []string
+		switch r.Slug {
+		case "administrator":
+			keys = rbac.AdministratorPermissions()
+		case "tata-usaha":
+			keys = rbac.TataUsahaPermissions()
+		}
+
+		if len(keys) > 0 {
+			var perms []model.Permission
+			if err := db.Where("key IN ?", keys).Find(&perms).Error; err != nil {
+				return err
+			}
+			if err := db.Model(&role).Association("Permissions").Replace(perms); err != nil {
 				return err
 			}
 		}
