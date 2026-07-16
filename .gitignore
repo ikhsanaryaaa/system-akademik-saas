@@ -17,6 +17,20 @@ build/
 # Logs
 *.log
 
+# Go
+*.exe
+*.exe~
+*.test
+*.out
+backend/tmp/
+vendor/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Tooling
+skills-lock.json
+
 # OS
 .DS_Store
 Thumbs.db
