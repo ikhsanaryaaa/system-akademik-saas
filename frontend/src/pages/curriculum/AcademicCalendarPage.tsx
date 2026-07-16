@@ -92,7 +92,7 @@ export default function AcademicCalendarPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">Kalender Akademik</h1>
         {can("curriculum.create") && (
-          <button
+          <button type="button"
             onClick={openCreate}
             className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
           >
@@ -134,12 +134,12 @@ export default function AcademicCalendarPage() {
                   <td className="px-4 py-3 font-mono">{isoDate(r.end_date)}</td>
                   <td className="px-4 py-3 text-right">
                     {can("curriculum.update") && (
-                      <button onClick={() => openEdit(r)} className="text-primary hover:underline">
+                      <button type="button" onClick={() => openEdit(r)} className="text-primary hover:underline">
                         Edit
                       </button>
                     )}
                     {can("curriculum.delete") && (
-                      <button
+                      <button type="button"
                         onClick={() => handleDelete(r.id)}
                         className="ml-3 text-danger hover:underline"
                       >

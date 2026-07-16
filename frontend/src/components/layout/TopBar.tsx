@@ -34,7 +34,7 @@ export default function TopBar() {
           </select>
         )}
         <span className="text-sm text-body">{user?.name}</span>
-        <button onClick={handleLogout} className="text-sm text-primary hover:underline">
+        <button type="button" onClick={handleLogout} className="text-sm text-primary hover:underline">
           Keluar
         </button>
       </div>
