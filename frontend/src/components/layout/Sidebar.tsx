@@ -31,6 +31,15 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "Kurikulum",
+    items: [
+      { label: "Mata Pelajaran", to: "/curriculum/subjects", permission: "curriculum.read" },
+      { label: "Pemetaan Kelas", to: "/curriculum/class-subjects", permission: "curriculum.read" },
+      { label: "Jadwal Pelajaran", to: "/curriculum/schedules", permission: "curriculum.read" },
+      { label: "Kalender Akademik", to: "/curriculum/calendar", permission: "curriculum.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },
