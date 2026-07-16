@@ -51,6 +51,10 @@ var Permissions = []PermissionDef{
 	{"curriculum.create", "Membuat data kurikulum"},
 	{"curriculum.update", "Mengubah data kurikulum"},
 	{"curriculum.delete", "Menghapus data kurikulum"},
+
+	{"attendance.read", "Melihat data absensi dan laporan"},
+	{"attendance.create", "Mencatat dan mengubah absensi"},
+	{"attendance.manage", "Mengelola pengaturan jam dan kartu RFID"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -68,9 +72,22 @@ func AdministratorPermissions() []string {
 }
 
 // TataUsahaPermissions mengembalikan permission untuk role Tata Usaha:
-// mengelola data master ditambah melihat user.
+// mengelola data master, melihat user, dan mengelola absensi penuh.
 func TataUsahaPermissions() []string {
-	return append(masterPermissionKeys(), "user.read")
+	keys := append(masterPermissionKeys(), "user.read")
+	return append(keys, "attendance.read", "attendance.create", "attendance.manage")
+}
+
+// GuruPermissions mengembalikan permission untuk role Guru:
+// mencatat absensi dan membaca data master sebagai referensi.
+func GuruPermissions() []string {
+	return []string{"attendance.read", "attendance.create", "master.read"}
+}
+
+// WaliKelasPermissions sama dengan Guru pada tahap ini:
+// mencatat absensi kelas dan membaca data master.
+func WaliKelasPermissions() []string {
+	return []string{"attendance.read", "attendance.create", "master.read"}
 }
 
 // curriculumPermissionKeys mengembalikan seluruh key permission kurikulum.
