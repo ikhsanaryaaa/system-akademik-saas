@@ -13,6 +13,7 @@ var models = []interface{}{
 	&model.Permission{},
 	&model.Role{},
 	&model.User{},
+	&model.AuditLog{},
 	&model.AcademicYear{},
 	&model.GradeLevel{},
 	&model.Major{},

@@ -45,6 +45,7 @@ import {
   CalendarCheck2,
   ShieldCheck,
   KeyRound,
+  ScrollText,
   ChevronDown,
   ChevronRight,
   ChevronsLeft,
@@ -56,6 +57,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import { useAuth } from "../../context/AuthContext";
 import { useLocation } from "react-router-dom";
 import {
@@ -206,7 +208,10 @@ const groups: MenuGroup[] = [
   {
     label: "Settings",
     icon: Settings,
-    items: [{ label: "Ganti Password", to: "/change-password", icon: KeyRound }],
+    items: [
+      { label: "Audit Log", to: "/audit-logs", icon: ScrollText, permission: "audit.read" },
+      { label: "Ganti Password", to: "/change-password", icon: KeyRound },
+    ],
   },
 ];
 
@@ -225,7 +230,7 @@ export default function Sidebar() {
   }
 
   return (
-    <>
+    <LazyMotion features={domAnimation} strict>
       {/* Sidebar desktop: bisa collapse dari 260px menjadi rail ikon 72px. */}
       <aside
         className={`relative hidden shrink-0 border-r border-hairline bg-canvas text-body transition-[width] duration-200 md:block ${
@@ -261,16 +266,27 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Drawer mobile: overlay + panel geser. */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <button
-            type="button"
-            aria-label="Tutup menu"
-            onClick={() => setMobileOpen(false)}
-            className="absolute inset-0 bg-overlay"
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-[260px] flex-col bg-canvas text-body shadow-lg">
+      {/* Drawer mobile: overlay fade + panel geser dengan animasi masuk/keluar. */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <m.button
+              type="button"
+              aria-label="Tutup menu"
+              onClick={() => setMobileOpen(false)}
+              className="absolute inset-0 bg-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+            <m.aside
+              className="absolute inset-y-0 left-0 flex w-[260px] flex-col bg-canvas text-body shadow-lg"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+            >
             <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-hairline px-4">
               <div className="flex items-center gap-2">
                 <div className="grid h-8 w-8 place-items-center rounded-md bg-primary font-mono text-sm font-bold text-white">
@@ -288,10 +304,11 @@ export default function Sidebar() {
               </button>
             </div>
             <SidebarNav onNavigate={() => setMobileOpen(false)} />
-          </aside>
-        </div>
-      )}
-    </>
+            </m.aside>
+          </div>
+        )}
+      </AnimatePresence>
+    </LazyMotion>
   );
 }
 
@@ -371,24 +388,37 @@ function SidebarNav({ onNavigate, collapsed = false }: { onNavigate?: () => void
               type="button"
               onClick={() => toggle(group.label!)}
               aria-expanded={isOpen}
-              className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted transition-colors hover:bg-surface-soft hover:text-body"
+              className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted transition-colors hover:bg-primary-soft hover:text-primary"
             >
               {GroupIcon && <GroupIcon className="h-4 w-4 shrink-0" strokeWidth={2} />}
               <span className="truncate">{group.label}</span>
-              <ChevronDown
-                className={`ml-auto h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-              />
+              <m.span
+                className="ml-auto flex shrink-0"
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="h-4 w-4" />
+              </m.span>
             </button>
-            {isOpen && (
-              <div className="mt-1 pl-3">
-                {/* Wadah dengan garis konektor vertikal untuk sub-item (seperti referensi). */}
-                <div className="relative space-y-1 border-l border-hairline pl-3">
-                  {visible.map((m) => (
-                    <SidebarSubLink key={m.to} item={m} onNavigate={onNavigate} />
-                  ))}
+            {/* Buka tutup dianimasikan lewat grid-template-rows (0fr ke 1fr),
+                bukan height, agar tidak memicu reflow tiap frame. */}
+            <m.div
+              className="grid"
+              initial={false}
+              animate={{ gridTemplateRows: isOpen ? "1fr" : "0fr", opacity: isOpen ? 1 : 0 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+            >
+              <div className="overflow-hidden">
+                <div className="mt-1 pl-3">
+                  {/* Wadah dengan garis konektor vertikal untuk sub-item (seperti referensi). */}
+                  <div className="relative space-y-1 border-l border-hairline pl-3">
+                    {visible.map((m) => (
+                      <SidebarSubLink key={m.to} item={m} onNavigate={onNavigate} />
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
+            </m.div>
           </div>
         );
       })}
@@ -441,7 +471,7 @@ function CollapsedGroup({
         className={`relative grid h-11 w-full place-items-center rounded-md transition-colors ${
           active
             ? "bg-primary-soft text-primary"
-            : "text-muted hover:bg-surface-soft hover:text-ink"
+            : "text-muted hover:bg-primary-soft hover:text-primary"
         }`}
       >
         {active && (
@@ -450,26 +480,33 @@ function CollapsedGroup({
         {GroupIcon && <GroupIcon className="h-[18px] w-[18px]" strokeWidth={2} />}
       </button>
 
-      {open &&
-        createPortal(
-          <div
-            role="menu"
-            onMouseEnter={show}
-            onMouseLeave={hideSoon}
-            style={{ top: coords.top, left: coords.left }}
-            className="fixed z-[60] min-w-[200px] rounded-lg border border-hairline bg-canvas p-1.5 shadow-md"
-          >
-            <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
-              {group.label}
-            </p>
-            <div className="relative border-l border-hairline pl-3">
-              {items.map((m) => (
-                <SidebarSubLink key={m.to} item={m} onNavigate={onNavigate} />
-              ))}
-            </div>
-          </div>,
-          document.body
-        )}
+      {createPortal(
+        <AnimatePresence>
+          {open && (
+            <m.div
+              role="menu"
+              onMouseEnter={show}
+              onMouseLeave={hideSoon}
+              style={{ top: coords.top, left: coords.left }}
+              className="fixed z-[60] min-w-[200px] rounded-lg border border-hairline bg-canvas p-1.5 shadow-md"
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+            >
+              <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                {group.label}
+              </p>
+              <div className="relative border-l border-hairline pl-3">
+                {items.map((m) => (
+                  <SidebarSubLink key={m.to} item={m} onNavigate={onNavigate} />
+                ))}
+              </div>
+            </m.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
@@ -497,7 +534,7 @@ function SidebarLink({
           `relative grid h-11 w-full place-items-center rounded-md transition-colors ${
             isActive
               ? "bg-primary-soft text-primary"
-              : "text-muted hover:bg-surface-soft hover:text-ink"
+              : "text-muted hover:bg-primary-soft hover:text-primary"
           }`
         }
       >
@@ -521,7 +558,7 @@ function SidebarLink({
         `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${
           isActive
             ? "bg-primary-soft font-semibold text-primary"
-            : "text-body hover:bg-surface-soft hover:text-ink"
+            : "text-body hover:bg-primary-soft hover:text-primary"
         }`
       }
     >
@@ -542,8 +579,8 @@ function SidebarSubLink({ item, onNavigate }: { item: MenuItem; onNavigate?: () 
       className={({ isActive }) =>
         `group flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
           isActive
-            ? "bg-surface-strong font-semibold text-ink"
-            : "text-muted hover:bg-surface-soft hover:text-body"
+            ? "bg-primary-soft font-semibold text-primary"
+            : "text-muted hover:bg-primary-soft hover:text-primary"
         }`
       }
     >
