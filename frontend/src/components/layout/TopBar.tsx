@@ -1,42 +1,39 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useAcademicYear } from "../../context/AcademicYearContext";
-import { logout } from "../../lib/auth";
+import { Menu } from "lucide-react";
+import { useSidebar } from "./sidebarContext";
+import SearchBar from "./SearchBar";
+import AcademicYearSelector from "./AcademicYearSelector";
+import NotificationButton from "./NotificationButton";
+import ThemeToggle from "./ThemeToggle";
+import ProfileMenu from "./ProfileMenu";
 
 export default function TopBar() {
-  const { user, setUser } = useAuth();
-  const { years, activeId, setActiveId } = useAcademicYear();
-  const navigate = useNavigate();
-
-  async function handleLogout() {
-    await logout();
-    setUser(null);
-    navigate("/login");
-  }
+  const { setMobileOpen } = useSidebar();
 
   return (
-    <header className="h-[60px] shrink-0 bg-white border-b border-hairline flex items-center justify-between px-6">
-      <div className="text-ink font-medium">Dashboard</div>
-      <div className="flex items-center gap-4">
-        {years.length > 0 && (
-          <select
-            value={activeId ?? ""}
-            onChange={(e) => setActiveId(e.target.value)}
-            className="h-9 rounded-md border border-hairline bg-surface-strong px-3 text-sm text-body"
-            title="Tahun ajaran aktif"
-          >
-            {years.map((y) => (
-              <option key={y.id} value={y.id}>
-                {y.name}
-                {y.is_active ? " (aktif)" : ""}
-              </option>
-            ))}
-          </select>
-        )}
-        <span className="text-sm text-body">{user?.name}</span>
-        <button type="button" onClick={handleLogout} className="text-sm text-primary hover:underline">
-          Keluar
+    <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center justify-between gap-2 border-b border-hairline bg-canvas px-3 md:px-6">
+      <div className="flex items-center gap-2">
+        {/* Buka drawer (mobile) */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Buka menu"
+          className="grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface-strong hover:text-ink md:hidden"
+        >
+          <Menu className="h-5 w-5" />
         </button>
+      </div>
+
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Pencarian global; disembunyikan di layar sangat sempit. */}
+        <div className="hidden sm:block">
+          <SearchBar />
+        </div>
+        <AcademicYearSelector />
+        <NotificationButton />
+        <ThemeToggle />
+        <div className="border-l border-hairline pl-2 sm:pl-3">
+          <ProfileMenu />
+        </div>
       </div>
     </header>
   );

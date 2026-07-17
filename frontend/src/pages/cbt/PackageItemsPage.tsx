@@ -54,7 +54,7 @@ export default function PackageItemsPage() {
       </div>
       <h1 className="mt-2 text-2xl font-semibold text-ink tracking-tight">Susun Soal Paket</h1>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <div className="border-b border-hairline px-4 py-3 text-sm font-semibold text-ink">Soal dalam Paket</div>
         <table className="w-full text-sm">
           <thead>
@@ -101,7 +101,7 @@ export default function PackageItemsPage() {
       </div>
 
       {canEdit && (
-        <div className="mt-6 overflow-hidden rounded-lg border border-hairline bg-white">
+        <div className="mt-6 overflow-hidden rounded-lg border border-hairline bg-canvas">
           <div className="border-b border-hairline px-4 py-3 text-sm font-semibold text-ink">Tambah dari Bank Soal</div>
           <table className="w-full text-sm">
             <thead>

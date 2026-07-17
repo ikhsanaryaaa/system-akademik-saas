@@ -16,7 +16,7 @@ import { useAuth } from "../../context/AuthContext";
 function renderSummary(inv: Invoice, remaining: number) {
   const status = String(inv.status);
   return (
-    <div className="mt-4 grid grid-cols-1 gap-4 rounded-lg border border-hairline bg-white p-4 md:grid-cols-2">
+    <div className="mt-4 grid grid-cols-1 gap-4 rounded-lg border border-hairline bg-canvas p-4 md:grid-cols-2">
       <div className="space-y-1 text-sm">
         <p>
           <span className="text-muted">Siswa: </span>
@@ -116,10 +116,10 @@ export default function InvoiceDetailPage() {
   }
 
   if (loading) {
-    return <div className="rounded-lg border border-hairline bg-white p-8 text-center text-muted">Memuat...</div>;
+    return <div className="rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">Memuat...</div>;
   }
   if (!invoice) {
-    return <div className="rounded-lg border border-hairline bg-white p-8 text-center text-muted">Tagihan tidak ditemukan.</div>;
+    return <div className="rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">Tagihan tidak ditemukan.</div>;
   }
 
   const remaining = Math.max(0, invoice.total_amount - invoice.paid_amount);
@@ -142,7 +142,7 @@ export default function InvoiceDetailPage() {
 
   function renderMessageTools() {
     return (
-      <div className="mt-4 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 rounded-lg border border-hairline bg-canvas p-4">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium text-body">Pesan via WhatsApp</span>
           <button
@@ -170,7 +170,7 @@ export default function InvoiceDetailPage() {
   function renderPayments(inv: Invoice) {
     const payments = inv.payments ?? [];
     return (
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <div className="border-b border-hairline px-4 py-3 text-sm font-semibold text-ink">Rincian Pembayaran</div>
         <table className="w-full text-sm">
           <thead>
@@ -219,7 +219,7 @@ export default function InvoiceDetailPage() {
   function renderAddForm() {
     const inputClass = "mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary";
     return (
-      <form onSubmit={handleAddPayment} className="mt-6 rounded-lg border border-hairline bg-white p-4">
+      <form onSubmit={handleAddPayment} className="mt-6 rounded-lg border border-hairline bg-canvas p-4">
         <h2 className="text-lg font-semibold text-ink">Catat Pembayaran</h2>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
           <div>

@@ -47,7 +47,7 @@ export default function RoomsSection({ scheduleId, rooms, canEdit, onChange }: P
   const inputClass = "mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary";
 
   return (
-    <div className="mt-6 overflow-hidden rounded-lg border border-hairline bg-white">
+    <div className="mt-6 overflow-hidden rounded-lg border border-hairline bg-canvas">
       <div className="border-b border-hairline px-4 py-3 text-sm font-semibold text-ink">Ruang dan Pengawas</div>
       <table className="w-full text-sm">
         <thead>

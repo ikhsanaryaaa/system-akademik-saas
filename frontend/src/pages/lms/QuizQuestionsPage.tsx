@@ -72,16 +72,16 @@ export default function QuizQuestionsPage() {
       <h1 className="mt-2 text-2xl font-semibold text-ink tracking-tight">Soal Quiz</h1>
 
       {loading ? (
-        <div className="mt-6 rounded-lg border border-hairline bg-white p-8 text-center text-muted">Memuat...</div>
+        <div className="mt-6 rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">Memuat...</div>
       ) : (
         <div className="mt-4 space-y-3">
           {rows.length === 0 ? (
-            <div className="rounded-lg border border-hairline bg-white p-8 text-center text-muted">
+            <div className="rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">
               Belum ada soal.
             </div>
           ) : (
             rows.map((q, i) => (
-              <div key={q.id} className="rounded-lg border border-hairline bg-white p-4">
+              <div key={q.id} className="rounded-lg border border-hairline bg-canvas p-4">
                 <div className="flex items-start justify-between gap-3">
                   <p className="font-medium text-ink">
                     <span className="font-mono text-muted">{i + 1}.</span> {q.question}
@@ -124,7 +124,7 @@ export default function QuizQuestionsPage() {
   function renderAddForm() {
     const inputClass = "mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary";
     return (
-      <form onSubmit={handleAdd} className="mt-6 rounded-lg border border-hairline bg-white p-4">
+      <form onSubmit={handleAdd} className="mt-6 rounded-lg border border-hairline bg-canvas p-4">
         <h2 className="text-lg font-semibold text-ink">Tambah Soal</h2>
         <div className="mt-3 space-y-3">
           <div>

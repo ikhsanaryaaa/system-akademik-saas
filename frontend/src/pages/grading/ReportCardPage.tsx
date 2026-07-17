@@ -121,7 +121,7 @@ export default function ReportCardPage() {
     <div>
       <h1 className="text-2xl font-semibold text-ink tracking-tight">e-Raport</h1>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div>
           <label htmlFor="rc-student" className="block text-sm font-medium text-body">
             Siswa
@@ -156,7 +156,7 @@ export default function ReportCardPage() {
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
@@ -194,7 +194,7 @@ export default function ReportCardPage() {
       </div>
 
       {studentId && can("grading.create") && (
-        <form onSubmit={handleSubmit} className="mt-6 rounded-lg border border-hairline bg-white p-6">
+        <form onSubmit={handleSubmit} className="mt-6 rounded-lg border border-hairline bg-canvas p-6">
           <h2 className="text-lg font-semibold text-ink">Input Nilai Raport</h2>
           {message && <p className="mt-2 text-sm text-success">{message}</p>}
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">

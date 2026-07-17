@@ -48,7 +48,7 @@ export default function AttendanceReportPage() {
     <div>
       <h1 className="text-2xl font-semibold text-ink tracking-tight">Laporan Absensi</h1>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div>
           <label htmlFor="report-class" className="block text-sm font-medium text-body">
             Kelas
@@ -93,7 +93,7 @@ export default function AttendanceReportPage() {
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">

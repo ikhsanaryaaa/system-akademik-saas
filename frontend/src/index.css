@@ -2,15 +2,219 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Token warna disimpan sebagai CSS custom property agar dua hal bisa berjalan:
+ * 1. Branding per instance meng-inject --color-primary saat aplikasi dimuat.
+ * 2. Dark mode cukup menimpa token di scope .dark, tanpa util dark: di tiap komponen.
+ * Nilai light adalah sumber kebenaran DESIGN.md; nilai dark adalah turunannya.
+ */
 :root {
-  /* Branding default; di-inject ulang dari config saat aplikasi dimuat. */
+  /* Branding (di-inject ulang dari config saat aplikasi dimuat). */
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
   --color-primary-active: #1e40af;
   --color-primary-soft: #eff6ff;
   --color-primary-border: #bfdbfe;
+
+  /* Netral dan permukaan. */
+  --color-ink: #0f172a;
+  --color-body: #334155;
+  --color-muted: #64748b;
+  --color-muted-soft: #94a3b8;
+  --color-hairline: #e2e8f0;
+  --color-hairline-soft: #f1f5f9;
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f8fafc;
+  --color-surface-strong: #f1f5f9;
+
+  /* Sidebar. */
+  --color-sidebar: #0f172a;
+  --color-sidebar-elevated: #1e293b;
+  --color-on-sidebar: #e2e8f0;
+  --color-on-sidebar-muted: #94a3b8;
+
+  /* Semantik status (warna teks tetap; latar soft bisa berubah di dark). */
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fee2e2;
+  --color-info: #0284c7;
+  --color-info-soft: #e0f2fe;
+
+  /* Overlay modal dan drawer. */
+  --color-overlay: rgba(15, 23, 42, 0.5);
+}
+
+/*
+ * Dark mode. Kanvas dibalik ke slate gelap, teks dinaikkan kecerahannya.
+ * Warna primary (branding) dan warna teks semantik dibiarkan; hanya latar
+ * soft-nya yang ditransparankan agar kontras badge tetap terbaca di gelap.
+ */
+.dark {
+  --color-primary-soft: rgba(37, 99, 235, 0.16);
+  --color-primary-border: rgba(59, 130, 246, 0.35);
+
+  --color-ink: #f1f5f9;
+  --color-body: #cbd5e1;
+  --color-muted: #94a3b8;
+  --color-muted-soft: #64748b;
+  --color-hairline: #1e293b;
+  --color-hairline-soft: #172033;
+  --color-canvas: #0f172a;
+  --color-surface-soft: #0b1220;
+  --color-surface-strong: #1e293b;
+
+  --color-sidebar: #0b1120;
+  --color-sidebar-elevated: #1e293b;
+  --color-on-sidebar: #e2e8f0;
+  --color-on-sidebar-muted: #94a3b8;
+
+  --color-success: #4ade80;
+  --color-success-soft: rgba(22, 163, 74, 0.18);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgba(217, 119, 6, 0.18);
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
+  --color-danger-soft: rgba(220, 38, 38, 0.18);
+  --color-info: #38bdf8;
+  --color-info-soft: rgba(2, 132, 199, 0.18);
+
+  --color-overlay: rgba(2, 6, 23, 0.65);
+
+  color-scheme: dark;
 }
 
 body {
   @apply bg-surface-soft text-body font-sans antialiased;
+}
+
+/* Warna latar dan teks ikut berpindah mulus saat mode diganti. */
+body,
+.theme-transition * {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+/*
+ * Native <select> dirapikan secara global tanpa menyentuh tiap halaman.
+ * Aturan ini sengaja TIDAK di dalam @layer agar menang atas utility Tailwind
+ * (unlayered CSS mengalahkan @layer utilities di cascade), sehingga padding
+ * dan chevron kustom tetap konsisten meski elemen sudah punya class px-3.
+ * Efeknya: latar ikut dark mode, chevron seragam lintas browser, teks tidak
+ * bertabrakan dengan panah, dan fokus memakai warna primary.
+ */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  cursor: pointer;
+}
+select:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 45%, var(--color-hairline));
+}
+select:focus,
+select:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 22%, transparent);
+}
+select option {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/* Scrollbar mengikuti tema: track transparan, thumb dari token hairline/muted. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted-soft) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-hairline);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted-soft);
+}
+
+/* Hormati preferensi pengguna: matikan transisi spasial (mis. collapse sidebar). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Native <select> dirapikan secara global: hilangkan chevron bawaan OS,
+ * ganti dengan ikon panah kustom yang mengikuti warna teks, samakan padding,
+ * dan pakai token warna agar tampil rapi di mode terang maupun gelap.
+ * Tiap select tetap membawa class util-nya sendiri (tinggi, border, radius).
+ */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--color-canvas);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 2rem !important;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* Opsi dropdown mengikuti kanvas (penting agar terbaca di dark mode). */
+select option {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/* Scrollbar disamakan dengan tema: track transparan, thumb abu-abu netral. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted-soft) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-muted-soft);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted);
 }

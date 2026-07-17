@@ -12,9 +12,9 @@ export const invoiceStatusLabel: Record<string, string> = {
 // Kelas badge status tagihan; teks label selalu ikut ditampilkan sehingga
 // tidak hanya mengandalkan warna (aksesibilitas).
 export const invoiceStatusBadge: Record<string, string> = {
-  unpaid: "bg-red-100 text-danger",
-  partial: "bg-amber-100 text-warning",
-  paid: "bg-green-100 text-success",
+  unpaid: "bg-danger-soft text-danger",
+  partial: "bg-warning-soft text-warning",
+  paid: "bg-success-soft text-success",
 };
 
 export const paymentMethods = ["tunai", "transfer", "qris", "lainnya"];

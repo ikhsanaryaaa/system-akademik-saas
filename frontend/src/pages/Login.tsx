@@ -29,7 +29,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-soft px-4">
-      <div className="w-full max-w-[400px] rounded-xl border border-hairline bg-white p-8">
+      <div className="w-full max-w-[400px] rounded-xl border border-hairline bg-canvas p-8">
         <h1 className="text-xl font-semibold text-ink">Masuk</h1>
         <p className="mt-1 text-sm text-muted">Sistem Informasi Manajemen Sekolah</p>
 
