@@ -116,6 +116,14 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "CBT",
+    items: [
+      { label: "Bank Soal", to: "/cbt/questions", permission: "cbt.read" },
+      { label: "Paket Ujian", to: "/cbt/packages", permission: "cbt.read" },
+      { label: "Jadwal Ujian", to: "/cbt/schedules", permission: "cbt.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },
