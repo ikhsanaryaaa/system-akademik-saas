@@ -68,6 +68,16 @@ var Permissions = []PermissionDef{
 	{"bk.create", "Membuat data bimbingan konseling"},
 	{"bk.update", "Mengubah data bimbingan konseling"},
 	{"bk.delete", "Menghapus data bimbingan konseling"},
+
+	{"piket.read", "Melihat data guru piket"},
+	{"piket.create", "Membuat data guru piket"},
+	{"piket.update", "Mengubah data guru piket"},
+	{"piket.delete", "Menghapus data guru piket"},
+
+	{"bkk.read", "Melihat data bursa kerja khusus"},
+	{"bkk.create", "Membuat data bursa kerja khusus"},
+	{"bkk.update", "Mengubah data bursa kerja khusus"},
+	{"bkk.delete", "Menghapus data bursa kerja khusus"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -123,16 +133,33 @@ func bkPermissionKeys() []string {
 	return []string{"bk.read", "bk.create", "bk.update", "bk.delete"}
 }
 
+// piketPermissionKeys mengembalikan seluruh key permission guru piket.
+func piketPermissionKeys() []string {
+	return []string{"piket.read", "piket.create", "piket.update", "piket.delete"}
+}
+
+// bkkPermissionKeys mengembalikan seluruh key permission bursa kerja khusus.
+func bkkPermissionKeys() []string {
+	return []string{"bkk.read", "bkk.create", "bkk.update", "bkk.delete"}
+}
+
 // WakilKesiswaanPermissions mengembalikan permission untuk role Wakil Kesiswaan:
-// mengelola data kesiswaan ditambah membaca data master sebagai referensi.
+// mengelola data kesiswaan dan guru piket, ditambah membaca data master sebagai referensi.
 func WakilKesiswaanPermissions() []string {
-	return append(kesiswaanPermissionKeys(), "master.read")
+	keys := append(kesiswaanPermissionKeys(), piketPermissionKeys()...)
+	return append(keys, "master.read")
 }
 
 // BimbinganKonselingPermissions mengembalikan permission untuk role Bimbingan Konseling:
 // mengelola data BK ditambah membaca data master sebagai referensi.
 func BimbinganKonselingPermissions() []string {
 	return append(bkPermissionKeys(), "master.read")
+}
+
+// BursaKerjaKhususPermissions mengembalikan permission untuk role Bursa Kerja Khusus:
+// mengelola data BKK ditambah membaca data master sebagai referensi.
+func BursaKerjaKhususPermissions() []string {
+	return append(bkkPermissionKeys(), "master.read")
 }
 
 // curriculumPermissionKeys mengembalikan seluruh key permission kurikulum.

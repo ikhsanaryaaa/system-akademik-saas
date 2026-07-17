@@ -2,7 +2,7 @@ import { useEffect, useReducer, useState, type FormEvent } from "react";
 import { http, type ApiResponse } from "../../lib/http";
 import { simpleList, paginatedList, type ClassRow, type StudentRow, type Major } from "../../lib/master";
 import { followUpStatuses, type ViolationRecord, type ViolationType } from "../../lib/bk";
-import { fmtDate } from "../../components/CrudModulePage";
+import { fmtDate } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 
 const PATH = "/violation-records";

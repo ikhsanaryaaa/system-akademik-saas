@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { http, type ApiResponse } from "../../lib/http";
 import { paginatedList, type StudentRow } from "../../lib/master";
 import type { StudentBook } from "../../lib/bk";
-import { fmtDate } from "../../components/CrudModulePage";
+import { fmtDate } from "../../lib/format";
 
 export default function StudentBookPage() {
   const [students, setStudents] = useState<StudentRow[]>([]);

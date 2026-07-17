@@ -79,6 +79,25 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "Guru Piket",
+    items: [
+      { label: "Jadwal Piket", to: "/piket/schedules", permission: "piket.read" },
+      { label: "Buku Piket", to: "/piket/logs", permission: "piket.read" },
+      { label: "Buku Tamu", to: "/piket/guest-book", permission: "piket.read" },
+      { label: "Pelanggaran Harian", to: "/piket/daily-violations", permission: "piket.read" },
+      { label: "Keterlambatan", to: "/piket/lateness", permission: "piket.read" },
+      { label: "Izin Keluar", to: "/piket/leave-permits", permission: "piket.read" },
+    ],
+  },
+  {
+    label: "Bursa Kerja Khusus",
+    items: [
+      { label: "Tempat PKL", to: "/bkk/places", permission: "bkk.read" },
+      { label: "Data PKL", to: "/bkk/internships", permission: "bkk.read" },
+      { label: "Lowongan Kerja", to: "/bkk/vacancies", permission: "bkk.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },

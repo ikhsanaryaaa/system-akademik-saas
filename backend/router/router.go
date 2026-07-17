@@ -67,6 +67,15 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	achievementHandler := handler.NewAchievementHandler(db)
 	alumniHandler := handler.NewAlumniHandler(db)
 	studentBookHandler := handler.NewStudentBookHandler(db)
+	dutyScheduleHandler := handler.NewDutyScheduleHandler(db)
+	dutyLogHandler := handler.NewDutyLogHandler(db)
+	guestBookHandler := handler.NewGuestBookHandler(db)
+	dailyViolationHandler := handler.NewDailyViolationHandler(db)
+	latenessHandler := handler.NewLatenessHandler(db)
+	leavePermitHandler := handler.NewLeavePermitHandler(db)
+	internshipPlaceHandler := handler.NewInternshipPlaceHandler(db)
+	internshipHandler := handler.NewInternshipHandler(db)
+	jobVacancyHandler := handler.NewJobVacancyHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -157,6 +166,19 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 
 			auth.PUT("/violation-records/:id/follow-up", middleware.RequirePermission("bk.update"), violationRecordHandler.FollowUp)
 			auth.GET("/student-book", middleware.RequirePermission("bk.read"), studentBookHandler.Book)
+
+			// Guru Piket.
+			registerPiketCRUD(auth, "/duty-schedules", dutyScheduleHandler.List, dutyScheduleHandler.Create, dutyScheduleHandler.Update, dutyScheduleHandler.Delete)
+			registerPiketCRUD(auth, "/duty-logs", dutyLogHandler.List, dutyLogHandler.Create, dutyLogHandler.Update, dutyLogHandler.Delete)
+			registerPiketCRUD(auth, "/guest-book", guestBookHandler.List, guestBookHandler.Create, guestBookHandler.Update, guestBookHandler.Delete)
+			registerPiketCRUD(auth, "/daily-violations", dailyViolationHandler.List, dailyViolationHandler.Create, dailyViolationHandler.Update, dailyViolationHandler.Delete)
+			registerPiketCRUD(auth, "/lateness", latenessHandler.List, latenessHandler.Create, latenessHandler.Update, latenessHandler.Delete)
+			registerPiketCRUD(auth, "/leave-permits", leavePermitHandler.List, leavePermitHandler.Create, leavePermitHandler.Update, leavePermitHandler.Delete)
+
+			// Bursa Kerja Khusus.
+			registerBkkCRUD(auth, "/internship-places", internshipPlaceHandler.List, internshipPlaceHandler.Create, internshipPlaceHandler.Update, internshipPlaceHandler.Delete)
+			registerBkkCRUD(auth, "/internships", internshipHandler.List, internshipHandler.Create, internshipHandler.Update, internshipHandler.Delete)
+			registerBkkCRUD(auth, "/job-vacancies", jobVacancyHandler.List, jobVacancyHandler.Create, jobVacancyHandler.Update, jobVacancyHandler.Delete)
 		}
 	}
 
@@ -197,4 +219,22 @@ func registerBkCRUD(g *gin.RouterGroup, path string, list, create, update, del g
 	g.POST(path, middleware.RequirePermission("bk.create"), create)
 	g.PUT(path+"/:id", middleware.RequirePermission("bk.update"), update)
 	g.DELETE(path+"/:id", middleware.RequirePermission("bk.delete"), del)
+}
+
+// registerPiketCRUD mendaftarkan route CRUD untuk entitas guru piket,
+// dengan permission piket.read untuk baca dan piket.create/update/delete untuk tulis.
+func registerPiketCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("piket.read"), list)
+	g.POST(path, middleware.RequirePermission("piket.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("piket.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("piket.delete"), del)
+}
+
+// registerBkkCRUD mendaftarkan route CRUD untuk entitas bursa kerja khusus,
+// dengan permission bkk.read untuk baca dan bkk.create/update/delete untuk tulis.
+func registerBkkCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("bkk.read"), list)
+	g.POST(path, middleware.RequirePermission("bkk.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("bkk.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("bkk.delete"), del)
 }

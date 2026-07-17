@@ -37,6 +37,15 @@ import HomeVisitsPage from "./pages/bk/HomeVisitsPage";
 import AchievementsPage from "./pages/bk/AchievementsPage";
 import AlumniPage from "./pages/bk/AlumniPage";
 import StudentBookPage from "./pages/bk/StudentBookPage";
+import DutySchedulesPage from "./pages/piket/DutySchedulesPage";
+import DutyLogsPage from "./pages/piket/DutyLogsPage";
+import GuestBookPage from "./pages/piket/GuestBookPage";
+import DailyViolationsPage from "./pages/piket/DailyViolationsPage";
+import LatenessPage from "./pages/piket/LatenessPage";
+import LeavePermitsPage from "./pages/piket/LeavePermitsPage";
+import InternshipPlacesPage from "./pages/bkk/InternshipPlacesPage";
+import InternshipsPage from "./pages/bkk/InternshipsPage";
+import JobVacanciesPage from "./pages/bkk/JobVacanciesPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -87,6 +96,24 @@ function kesiswaanRoute(element: ReactNode) {
 function bkRoute(element: ReactNode) {
   return (
     <RequireAuth permission="bk.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// piketRoute membungkus halaman guru piket dengan guard permission piket.read.
+function piketRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="piket.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// bkkRoute membungkus halaman bursa kerja khusus dengan guard permission bkk.read.
+function bkkRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="bkk.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -166,6 +193,17 @@ export default function App() {
       <Route path="/bk/achievements" element={bkRoute(<AchievementsPage />)} />
       <Route path="/bk/alumni" element={bkRoute(<AlumniPage />)} />
       <Route path="/bk/student-book" element={bkRoute(<StudentBookPage />)} />
+
+      <Route path="/piket/schedules" element={piketRoute(<DutySchedulesPage />)} />
+      <Route path="/piket/logs" element={piketRoute(<DutyLogsPage />)} />
+      <Route path="/piket/guest-book" element={piketRoute(<GuestBookPage />)} />
+      <Route path="/piket/daily-violations" element={piketRoute(<DailyViolationsPage />)} />
+      <Route path="/piket/lateness" element={piketRoute(<LatenessPage />)} />
+      <Route path="/piket/leave-permits" element={piketRoute(<LeavePermitsPage />)} />
+
+      <Route path="/bkk/places" element={bkkRoute(<InternshipPlacesPage />)} />
+      <Route path="/bkk/internships" element={bkkRoute(<InternshipsPage />)} />
+      <Route path="/bkk/vacancies" element={bkkRoute(<JobVacanciesPage />)} />
     </Routes>
   );
 }
