@@ -54,8 +54,8 @@ export default function UserFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] px-4">
-      <div className="w-full max-w-[520px] rounded-xl bg-white p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+      <div className="w-full max-w-[520px] rounded-xl bg-canvas p-6">
         <h2 className="text-lg font-semibold text-ink">{isEdit ? "Edit User" : "Tambah User"}</h2>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">

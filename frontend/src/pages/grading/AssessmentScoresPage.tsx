@@ -58,12 +58,12 @@ export default function AssessmentScoresPage() {
       {message && <p className="mt-3 text-sm text-success">{message}</p>}
 
       {loading ? (
-        <div className="mt-6 rounded-lg border border-hairline bg-white p-8 text-center text-muted">
+        <div className="mt-6 rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">
           Memuat...
         </div>
       ) : (
         <>
-          <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+          <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">

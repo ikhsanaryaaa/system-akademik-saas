@@ -20,8 +20,8 @@ export default function QuestionModal({ form, dispatch, subjects, majors, onSubm
   const needsOptions = form.type === "multiple_choice" || form.type === "true_false" || form.type === "matching";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] px-4">
-      <form onSubmit={onSubmit} className="max-h-[90vh] w-full max-w-[640px] overflow-y-auto rounded-xl bg-white p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+      <form onSubmit={onSubmit} className="max-h-[90vh] w-full max-w-[640px] overflow-y-auto rounded-xl bg-canvas p-6">
         <h2 className="text-lg font-semibold text-ink">{form.id ? "Edit" : "Tambah"} Soal</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>

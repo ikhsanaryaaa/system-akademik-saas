@@ -55,7 +55,7 @@ export default function PushGradingSection({ scheduleId, classes, onDone }: Prop
   const inputClass = "mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary";
 
   return (
-    <div className="mt-6 rounded-lg border border-hairline bg-white p-4">
+    <div className="mt-6 rounded-lg border border-hairline bg-canvas p-4">
       <h2 className="text-sm font-semibold text-ink">Integrasi Nilai ke Penilaian</h2>
       <form onSubmit={push} className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
         <div>
