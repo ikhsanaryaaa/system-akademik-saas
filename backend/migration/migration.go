@@ -51,6 +51,13 @@ var models = []interface{}{
 	&model.InternshipPlace{},
 	&model.Internship{},
 	&model.JobVacancy{},
+	&model.Material{},
+	&model.Assignment{},
+	&model.AssignmentSubmission{},
+	&model.Quiz{},
+	&model.QuizQuestion{},
+	&model.ForumThread{},
+	&model.ForumPost{},
 }
 
 // Run menjalankan auto-migrate untuk seluruh model terdaftar.
