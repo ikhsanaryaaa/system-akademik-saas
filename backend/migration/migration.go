@@ -58,6 +58,9 @@ var models = []interface{}{
 	&model.QuizQuestion{},
 	&model.ForumThread{},
 	&model.ForumPost{},
+	&model.PaymentType{},
+	&model.Invoice{},
+	&model.InvoicePayment{},
 }
 
 // Run menjalankan auto-migrate untuk seluruh model terdaftar.
