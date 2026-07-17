@@ -73,6 +73,10 @@ func seedRoles(db *gorm.DB) error {
 			keys = rbac.BursaKerjaKhususPermissions()
 		case "bendahara":
 			keys = rbac.BendaharaPermissions()
+		case "proktor-cbt":
+			keys = rbac.ProktorCBTPermissions()
+		case "pengawas-cbt":
+			keys = rbac.PengawasCBTPermissions()
 		}
 
 		if len(keys) > 0 {

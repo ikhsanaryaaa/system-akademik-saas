@@ -58,6 +58,11 @@ import PaymentTypesPage from "./pages/finance/PaymentTypesPage";
 import InvoicesPage from "./pages/finance/InvoicesPage";
 import InvoiceDetailPage from "./pages/finance/InvoiceDetailPage";
 import FinanceReportPage from "./pages/finance/FinanceReportPage";
+import QuestionsPage from "./pages/cbt/QuestionsPage";
+import ExamPackagesPage from "./pages/cbt/ExamPackagesPage";
+import PackageItemsPage from "./pages/cbt/PackageItemsPage";
+import ExamSchedulesPage from "./pages/cbt/ExamSchedulesPage";
+import ScheduleDetailPage from "./pages/cbt/ScheduleDetailPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -144,6 +149,15 @@ function lmsRoute(element: ReactNode) {
 function financeRoute(element: ReactNode) {
   return (
     <RequireAuth permission="finance.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// cbtRoute membungkus halaman CBT dengan guard permission cbt.read.
+function cbtRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="cbt.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -248,6 +262,12 @@ export default function App() {
       <Route path="/finance/invoices" element={financeRoute(<InvoicesPage />)} />
       <Route path="/finance/invoices/:id" element={financeRoute(<InvoiceDetailPage />)} />
       <Route path="/finance/report" element={financeRoute(<FinanceReportPage />)} />
+
+      <Route path="/cbt/questions" element={cbtRoute(<QuestionsPage />)} />
+      <Route path="/cbt/packages" element={cbtRoute(<ExamPackagesPage />)} />
+      <Route path="/cbt/packages/:id/items" element={cbtRoute(<PackageItemsPage />)} />
+      <Route path="/cbt/schedules" element={cbtRoute(<ExamSchedulesPage />)} />
+      <Route path="/cbt/schedules/:id" element={cbtRoute(<ScheduleDetailPage />)} />
     </Routes>
   );
 }

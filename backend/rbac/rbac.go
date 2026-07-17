@@ -88,6 +88,13 @@ var Permissions = []PermissionDef{
 	{"finance.create", "Membuat data keuangan"},
 	{"finance.update", "Mengubah data keuangan"},
 	{"finance.delete", "Menghapus data keuangan"},
+
+	{"cbt.read", "Melihat bank soal, paket, dan jadwal ujian"},
+	{"cbt.create", "Membuat bank soal, paket, dan jadwal ujian"},
+	{"cbt.update", "Mengubah bank soal, paket, dan jadwal ujian"},
+	{"cbt.delete", "Menghapus bank soal, paket, dan jadwal ujian"},
+	{"cbt.monitor", "Memantau pelaksanaan ujian secara real-time"},
+	{"cbt.control", "Mengontrol sesi ujian peserta (token, reset, akses, waktu)"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -112,7 +119,8 @@ func TataUsahaPermissions() []string {
 }
 
 // GuruPermissions mengembalikan permission untuk role Guru:
-// mencatat absensi, mengelola penilaian, mengelola LMS, dan membaca data master serta kurikulum.
+// mencatat absensi, mengelola penilaian, mengelola LMS, mengelola bank soal dan paket ujian,
+// serta membaca data master dan kurikulum.
 func GuruPermissions() []string {
 	keys := []string{
 		"attendance.read", "attendance.create",
@@ -120,7 +128,8 @@ func GuruPermissions() []string {
 		"master.read", "curriculum.read",
 		"bk.read",
 	}
-	return append(keys, lmsPermissionKeys()...)
+	keys = append(keys, lmsPermissionKeys()...)
+	return append(keys, cbtAdminPermissionKeys()...)
 }
 
 // WaliKelasPermissions sama dengan Guru pada tahap ini, ditambah membaca data BK:
@@ -169,6 +178,25 @@ func financePermissionKeys() []string {
 // mengelola data keuangan ditambah membaca data master sebagai referensi.
 func BendaharaPermissions() []string {
 	return append(financePermissionKeys(), "master.read")
+}
+
+// cbtAdminPermissionKeys mengembalikan key permission administrasi CBT
+// (bank soal, paket, jadwal, ruang, alokasi peserta).
+func cbtAdminPermissionKeys() []string {
+	return []string{"cbt.read", "cbt.create", "cbt.update", "cbt.delete"}
+}
+
+// ProktorCBTPermissions mengembalikan permission untuk role Proktor CBT:
+// administrasi ujian penuh ditambah pemantauan dan kontrol sesi, plus referensi master.
+func ProktorCBTPermissions() []string {
+	keys := append(cbtAdminPermissionKeys(), "cbt.monitor", "cbt.control")
+	return append(keys, "master.read")
+}
+
+// PengawasCBTPermissions mengembalikan permission untuk role Pengawas CBT:
+// memantau pelaksanaan ujian dan membaca administrasi ujian sebagai referensi.
+func PengawasCBTPermissions() []string {
+	return []string{"cbt.read", "cbt.monitor", "master.read"}
 }
 
 // WakilKesiswaanPermissions mengembalikan permission untuk role Wakil Kesiswaan:

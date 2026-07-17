@@ -10,6 +10,7 @@ export type FieldType =
   | "date"
   | "datetime"
   | "select"
+  | "boolean"
   | "student"
   | "class"
   | "major"
@@ -150,6 +151,8 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       const v = form.values[f.key];
       if (f.type === "number") {
         body[f.key] = Number(v ?? 0);
+      } else if (f.type === "boolean") {
+        body[f.key] = v === true || v === "true";
       } else if (f.type === "date" || f.type === "datetime") {
         body[f.key] = v ? new Date(String(v)).toISOString() : null;
       } else if (f.type === "student" || f.type === "class" || f.type === "major" || f.type === "teacher" || f.type === "ref") {
@@ -362,6 +365,19 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
         />
       );
     }
+    if (f.type === "boolean") {
+      return (
+        <select
+          id={id}
+          value={value === true || value === "true" ? "true" : "false"}
+          onChange={(e) => set(e.target.value === "true")}
+          className={inputClass}
+        >
+          <option value="false">Tidak</option>
+          <option value="true">Ya</option>
+        </select>
+      );
+    }
     if (f.type === "select") {
       return (
         <select id={id} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
@@ -402,6 +418,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
     return (
       <input
         id={id}
+        aria-label={f.label}
         type={f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "datetime" ? "datetime-local" : "text"}
         value={displayValue}
         onChange={(e) => set(f.type === "number" ? Number(e.target.value) : e.target.value)}
