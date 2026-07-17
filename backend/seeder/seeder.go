@@ -71,6 +71,8 @@ func seedRoles(db *gorm.DB) error {
 			keys = rbac.BimbinganKonselingPermissions()
 		case "bursa-kerja-khusus":
 			keys = rbac.BursaKerjaKhususPermissions()
+		case "bendahara":
+			keys = rbac.BendaharaPermissions()
 		}
 
 		if len(keys) > 0 {
