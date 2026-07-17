@@ -78,6 +78,11 @@ var Permissions = []PermissionDef{
 	{"bkk.create", "Membuat data bursa kerja khusus"},
 	{"bkk.update", "Mengubah data bursa kerja khusus"},
 	{"bkk.delete", "Menghapus data bursa kerja khusus"},
+
+	{"lms.read", "Melihat data LMS"},
+	{"lms.create", "Membuat data LMS"},
+	{"lms.update", "Mengubah data LMS"},
+	{"lms.delete", "Menghapus data LMS"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -102,25 +107,27 @@ func TataUsahaPermissions() []string {
 }
 
 // GuruPermissions mengembalikan permission untuk role Guru:
-// mencatat absensi, mengelola penilaian, dan membaca data master serta kurikulum.
+// mencatat absensi, mengelola penilaian, mengelola LMS, dan membaca data master serta kurikulum.
 func GuruPermissions() []string {
-	return []string{
+	keys := []string{
 		"attendance.read", "attendance.create",
 		"grading.read", "grading.create",
 		"master.read", "curriculum.read",
 		"bk.read",
 	}
+	return append(keys, lmsPermissionKeys()...)
 }
 
 // WaliKelasPermissions sama dengan Guru pada tahap ini, ditambah membaca data BK:
-// mencatat absensi kelas, mengelola penilaian, membaca data master, kurikulum, dan BK.
+// mencatat absensi kelas, mengelola penilaian, mengelola LMS, membaca data master, kurikulum, dan BK.
 func WaliKelasPermissions() []string {
-	return []string{
+	keys := []string{
 		"attendance.read", "attendance.create",
 		"grading.read", "grading.create",
 		"master.read", "curriculum.read",
 		"bk.read",
 	}
+	return append(keys, lmsPermissionKeys()...)
 }
 
 // kesiswaanPermissionKeys mengembalikan seluruh key permission kesiswaan.
@@ -141,6 +148,11 @@ func piketPermissionKeys() []string {
 // bkkPermissionKeys mengembalikan seluruh key permission bursa kerja khusus.
 func bkkPermissionKeys() []string {
 	return []string{"bkk.read", "bkk.create", "bkk.update", "bkk.delete"}
+}
+
+// lmsPermissionKeys mengembalikan seluruh key permission LMS.
+func lmsPermissionKeys() []string {
+	return []string{"lms.read", "lms.create", "lms.update", "lms.delete"}
 }
 
 // WakilKesiswaanPermissions mengembalikan permission untuk role Wakil Kesiswaan:
