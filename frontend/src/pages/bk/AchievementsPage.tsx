@@ -1,4 +1,5 @@
-import CrudModulePage, { fmtDate, type CrudModuleConfig } from "../../components/CrudModulePage";
+import CrudModulePage, { type CrudModuleConfig } from "../../components/CrudModulePage";
+import { fmtDate } from "../../lib/format";
 import { achievementLevels } from "../../lib/bk";
 
 const config: CrudModuleConfig = {

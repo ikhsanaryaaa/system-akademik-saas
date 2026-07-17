@@ -3,12 +3,18 @@ import { http, type ApiResponse } from "../lib/http";
 import { simpleList, paginatedList, type ClassRow, type StudentRow, type Major } from "../lib/master";
 import { useAuth } from "../context/AuthContext";
 
-export type FieldType = "text" | "number" | "textarea" | "date" | "select" | "student" | "class" | "major";
-
-// fmtDate memotong nilai tanggal ISO ke format tampilan (YYYY-MM-DD).
-export function fmtDate(v: unknown): string {
-  return v ? String(v).slice(0, 10) : "-";
-}
+export type FieldType =
+  | "text"
+  | "number"
+  | "textarea"
+  | "date"
+  | "datetime"
+  | "select"
+  | "student"
+  | "class"
+  | "major"
+  | "teacher"
+  | "ref";
 
 export interface CrudField {
   key: string;
@@ -17,6 +23,9 @@ export interface CrudField {
   required?: boolean;
   options?: string[];
   fullWidth?: boolean;
+  // refPath dan refLabel dipakai untuk type "ref": endpoint daftar dan field label opsi.
+  refPath?: string;
+  refLabel?: string;
 }
 
 export interface CrudColumn {
@@ -73,6 +82,9 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [majors, setMajors] = useState<Major[]>([]);
+  const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
+  // refData menyimpan daftar opsi untuk tiap field bertipe "ref", dikunci per key field.
+  const [refData, setRefData] = useState<Record<string, { id: string; name: string }[]>>({});
   const [loading, setLoading] = useState(true);
   const [filterClass, setFilterClass] = useState("");
   const [filterMajor, setFilterMajor] = useState("");
@@ -81,6 +93,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
   const needsStudent = fields.some((f) => f.type === "student");
   const needsClass = fields.some((f) => f.type === "class") || filters.includes("class");
   const needsMajor = fields.some((f) => f.type === "major") || filters.includes("major");
+  const needsTeacher = fields.some((f) => f.type === "teacher");
 
   async function load() {
     setLoading(true);
@@ -105,6 +118,18 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       setClasses(cls.items);
     }
     if (needsMajor) setMajors(await simpleList<Major>("/majors"));
+    if (needsTeacher) {
+      const tc = await paginatedList<{ id: string; name: string }>("/teachers", { per_page: 100 });
+      setTeachers(tc.items);
+    }
+    // Muat daftar opsi untuk tiap field bertipe "ref" secara paralel.
+    const refFields = fields.filter((f) => f.type === "ref" && f.refPath);
+    const loaded = await Promise.all(
+      refFields.map(async (f) => [f.key, await simpleList<{ id: string; name: string }>(f.refPath!)] as const),
+    );
+    if (loaded.length > 0) {
+      setRefData((prev) => ({ ...prev, ...Object.fromEntries(loaded) }));
+    }
   }
 
   useEffect(() => {
@@ -125,10 +150,10 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       const v = form.values[f.key];
       if (f.type === "number") {
         body[f.key] = Number(v ?? 0);
-      } else if (f.type === "date") {
+      } else if (f.type === "date" || f.type === "datetime") {
         body[f.key] = v ? new Date(String(v)).toISOString() : null;
-      } else if (f.type === "student" || f.type === "class" || f.type === "major") {
-        // FK opsional (kecuali student yang required) dikirim null saat kosong.
+      } else if (f.type === "student" || f.type === "class" || f.type === "major" || f.type === "teacher" || f.type === "ref") {
+        // FK opsional dikirim null saat kosong; FK required dikirim string kosong agar divalidasi server.
         body[f.key] = v ? v : f.required ? "" : null;
       } else {
         body[f.key] = v ?? "";
@@ -349,8 +374,17 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
         </select>
       );
     }
-    if (f.type === "student" || f.type === "class" || f.type === "major") {
-      const list = f.type === "student" ? students : f.type === "class" ? classes : majors;
+    if (f.type === "student" || f.type === "class" || f.type === "major" || f.type === "teacher" || f.type === "ref") {
+      const list =
+        f.type === "student"
+          ? students
+          : f.type === "class"
+            ? classes
+            : f.type === "major"
+              ? majors
+              : f.type === "teacher"
+                ? teachers
+                : refData[f.key] ?? [];
       return (
         <select id={id} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
           <option value="">Pilih</option>
@@ -362,12 +396,13 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
         </select>
       );
     }
-    // Nilai tanggal ISO dipotong ke format input date (YYYY-MM-DD).
-    const displayValue = f.type === "date" ? String(value ?? "").slice(0, 10) : String(value ?? "");
+    // Nilai tanggal ISO dipotong ke format input date atau datetime-local.
+    const displayValue =
+      f.type === "date" ? String(value ?? "").slice(0, 10) : f.type === "datetime" ? String(value ?? "").slice(0, 16) : String(value ?? "");
     return (
       <input
         id={id}
-        type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
+        type={f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "datetime" ? "datetime-local" : "text"}
         value={displayValue}
         onChange={(e) => set(f.type === "number" ? Number(e.target.value) : e.target.value)}
         required={f.required}
