@@ -30,7 +30,7 @@ export default function StudentBookPage() {
     <div>
       <h1 className="text-2xl font-semibold text-ink tracking-tight">Buku Siswa</h1>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div>
           <label htmlFor="sb-student" className="block text-sm font-medium text-body">
             Siswa
@@ -57,7 +57,7 @@ export default function StudentBookPage() {
         <p className="mt-6 text-sm text-muted">Pilih siswa untuk menampilkan buku siswa.</p>
       ) : (
         <div className="mt-6 space-y-6">
-          <div className="flex flex-wrap items-center gap-4 rounded-lg border border-hairline bg-white p-4">
+          <div className="flex flex-wrap items-center gap-4 rounded-lg border border-hairline bg-canvas p-4">
             <div>
               <p className="text-lg font-semibold text-ink">{book.student.name}</p>
               <p className="text-sm text-muted">
@@ -167,7 +167,7 @@ export default function StudentBookPage() {
 
 function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-hairline bg-white">
+    <div className="overflow-hidden rounded-lg border border-hairline bg-canvas">
       <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
         <h2 className="text-sm font-semibold text-ink">{title}</h2>
         <span className="font-mono text-xs text-muted">{count} data</span>

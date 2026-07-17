@@ -60,16 +60,16 @@ export default function ForumPostsPage() {
       <h1 className="mt-2 text-2xl font-semibold text-ink tracking-tight">Diskusi</h1>
 
       {loading ? (
-        <div className="mt-6 rounded-lg border border-hairline bg-white p-8 text-center text-muted">Memuat...</div>
+        <div className="mt-6 rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">Memuat...</div>
       ) : (
         <div className="mt-4 space-y-3">
           {rows.length === 0 ? (
-            <div className="rounded-lg border border-hairline bg-white p-8 text-center text-muted">
+            <div className="rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">
               Belum ada balasan.
             </div>
           ) : (
             rows.map((p) => (
-              <div key={p.id} className="rounded-lg border border-hairline bg-white p-4">
+              <div key={p.id} className="rounded-lg border border-hairline bg-canvas p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">{p.author || "Anonim"}</p>
@@ -93,7 +93,7 @@ export default function ForumPostsPage() {
       )}
 
       {canWrite && (
-        <form onSubmit={handleAdd} className="mt-6 rounded-lg border border-hairline bg-white p-4">
+        <form onSubmit={handleAdd} className="mt-6 rounded-lg border border-hairline bg-canvas p-4">
           <h2 className="text-lg font-semibold text-ink">Tambah Balasan</h2>
           <div className="mt-3 space-y-3">
             <div>

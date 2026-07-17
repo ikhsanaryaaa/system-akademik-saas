@@ -232,7 +232,7 @@ export default function ViolationRecordsPage() {
         )}
       </div>
 
-      <div className="mt-4 flex gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div>
           <label htmlFor="filter-class" className="block text-sm font-medium text-body">
             Kelas
@@ -271,7 +271,7 @@ export default function ViolationRecordsPage() {
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
@@ -364,8 +364,8 @@ export default function ViolationRecordsPage() {
 
   function renderRecordModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] px-4">
-        <form onSubmit={handleSubmit} className="max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-xl bg-white p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+        <form onSubmit={handleSubmit} className="max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-xl bg-canvas p-6">
           <h2 className="text-lg font-semibold text-ink">{record.id ? "Edit" : "Catat"} Pelanggaran</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
@@ -501,8 +501,8 @@ export default function ViolationRecordsPage() {
 
   function renderFollowUpModal() {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] px-4">
-        <form onSubmit={handleFollowUp} className="w-full max-w-[480px] rounded-xl bg-white p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+        <form onSubmit={handleFollowUp} className="w-full max-w-[480px] rounded-xl bg-canvas p-6">
           <h2 className="text-lg font-semibold text-ink">Tindak Lanjut Pelanggaran</h2>
           <div className="mt-4 space-y-4">
             <div>

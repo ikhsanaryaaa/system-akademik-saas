@@ -45,7 +45,7 @@ export default function LmsReportPage() {
     <div>
       <h1 className="text-2xl font-semibold text-ink tracking-tight">Laporan LMS</h1>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div>
           <label htmlFor="report-class" className="block text-sm font-medium text-body">
             Kelas
@@ -86,7 +86,7 @@ export default function LmsReportPage() {
 
       <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
         {cards.map((c) => (
-          <div key={c.key} className="rounded-lg border border-hairline bg-white p-4">
+          <div key={c.key} className="rounded-lg border border-hairline bg-canvas p-4">
             <p className="text-sm text-muted">{c.label}</p>
             <p className="mt-1 font-mono text-2xl font-semibold text-ink">
               {loading ? "-" : (report?.[c.key] ?? 0)}

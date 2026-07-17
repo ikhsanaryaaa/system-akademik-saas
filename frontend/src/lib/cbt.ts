@@ -35,11 +35,11 @@ export const participantStatusLabel: Record<string, string> = {
 // Kelas badge status peserta; label selalu ditampilkan sehingga tidak
 // hanya mengandalkan warna (aksesibilitas).
 export const participantStatusBadge: Record<string, string> = {
-  not_started: "bg-gray-100 text-muted",
-  ongoing: "bg-sky-100 text-info",
-  submitted: "bg-green-100 text-success",
-  disconnected: "bg-amber-100 text-warning",
-  flagged: "bg-red-100 text-danger",
+  not_started: "bg-surface-strong text-muted",
+  ongoing: "bg-info-soft text-info",
+  submitted: "bg-success-soft text-success",
+  disconnected: "bg-warning-soft text-warning",
+  flagged: "bg-danger-soft text-danger",
 };
 
 export interface QuestionOption {
