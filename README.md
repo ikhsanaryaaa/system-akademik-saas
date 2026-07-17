@@ -159,10 +159,4 @@ The visual language targets institutional trust: a single blue action color over
 
 Dapodik integration, native mobile app for staff, and online payment gateway are possible later additions and are not part of the current scope.
 
-## Documentation
-
-* PRD.md, the full product requirements
-* DESIGN.md, the design system and UI tokens
-* PRD-android.md, the Android secure exam detail
-* PRD-ios.md, the iOS secure exam detail
 
