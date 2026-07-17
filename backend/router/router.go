@@ -81,6 +81,9 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	quizHandler := handler.NewQuizHandler(db)
 	forumThreadHandler := handler.NewForumThreadHandler(db)
 	lmsReportHandler := handler.NewLmsReportHandler(db)
+	paymentTypeHandler := handler.NewPaymentTypeHandler(db)
+	invoiceHandler := handler.NewInvoiceHandler(db)
+	financeReportHandler := handler.NewFinanceReportHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -208,6 +211,25 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.DELETE("/forum-threads/:id/posts/:postId", deleteLms, forumThreadHandler.DeletePost)
 
 			auth.GET("/lms/report", readLms, lmsReportHandler.Report)
+
+			// Keuangan.
+			registerFinanceCRUD(auth, "/payment-types", paymentTypeHandler.List, paymentTypeHandler.Create, paymentTypeHandler.Update, paymentTypeHandler.Delete)
+
+			readFin := middleware.RequirePermission("finance.read")
+			writeFin := middleware.RequirePermission("finance.create")
+			updateFin := middleware.RequirePermission("finance.update")
+			deleteFin := middleware.RequirePermission("finance.delete")
+
+			auth.GET("/invoices", readFin, invoiceHandler.List)
+			auth.GET("/invoices/:id", readFin, invoiceHandler.Detail)
+			auth.POST("/invoices", writeFin, invoiceHandler.Create)
+			auth.PUT("/invoices/:id", updateFin, invoiceHandler.Update)
+			auth.DELETE("/invoices/:id", deleteFin, invoiceHandler.Delete)
+			auth.POST("/invoices/:id/payments", writeFin, invoiceHandler.AddPayment)
+			auth.DELETE("/invoices/:id/payments/:paymentId", deleteFin, invoiceHandler.DeletePayment)
+			auth.GET("/invoices/:id/message", readFin, invoiceHandler.Message)
+
+			auth.GET("/finance/report", readFin, financeReportHandler.Report)
 		}
 	}
 
@@ -275,4 +297,13 @@ func registerLmsCRUD(g *gin.RouterGroup, path string, list, create, update, del 
 	g.POST(path, middleware.RequirePermission("lms.create"), create)
 	g.PUT(path+"/:id", middleware.RequirePermission("lms.update"), update)
 	g.DELETE(path+"/:id", middleware.RequirePermission("lms.delete"), del)
+}
+
+// registerFinanceCRUD mendaftarkan route CRUD untuk entitas keuangan,
+// dengan permission finance.read untuk baca dan finance.create/update/delete untuk tulis.
+func registerFinanceCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("finance.read"), list)
+	g.POST(path, middleware.RequirePermission("finance.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("finance.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("finance.delete"), del)
 }

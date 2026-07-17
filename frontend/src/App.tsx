@@ -54,6 +54,10 @@ import QuizQuestionsPage from "./pages/lms/QuizQuestionsPage";
 import ForumThreadsPage from "./pages/lms/ForumThreadsPage";
 import ForumPostsPage from "./pages/lms/ForumPostsPage";
 import LmsReportPage from "./pages/lms/LmsReportPage";
+import PaymentTypesPage from "./pages/finance/PaymentTypesPage";
+import InvoicesPage from "./pages/finance/InvoicesPage";
+import InvoiceDetailPage from "./pages/finance/InvoiceDetailPage";
+import FinanceReportPage from "./pages/finance/FinanceReportPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -131,6 +135,15 @@ function bkkRoute(element: ReactNode) {
 function lmsRoute(element: ReactNode) {
   return (
     <RequireAuth permission="lms.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// financeRoute membungkus halaman keuangan dengan guard permission finance.read.
+function financeRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="finance.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -230,6 +243,11 @@ export default function App() {
       <Route path="/lms/forum" element={lmsRoute(<ForumThreadsPage />)} />
       <Route path="/lms/forum/:id/posts" element={lmsRoute(<ForumPostsPage />)} />
       <Route path="/lms/report" element={lmsRoute(<LmsReportPage />)} />
+
+      <Route path="/finance/payment-types" element={financeRoute(<PaymentTypesPage />)} />
+      <Route path="/finance/invoices" element={financeRoute(<InvoicesPage />)} />
+      <Route path="/finance/invoices/:id" element={financeRoute(<InvoiceDetailPage />)} />
+      <Route path="/finance/report" element={financeRoute(<FinanceReportPage />)} />
     </Routes>
   );
 }
