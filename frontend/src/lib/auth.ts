@@ -2,11 +2,19 @@ import { http } from "./http";
 
 const TOKEN_KEY = "sim_token";
 
+export interface AuthRole {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
 export interface AuthUser {
   id: string;
   name: string;
   username: string;
   email?: string;
+  roles?: AuthRole[];
   permissions: string[];
 }
 

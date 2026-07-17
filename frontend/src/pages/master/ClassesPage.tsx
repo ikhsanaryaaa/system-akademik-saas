@@ -123,7 +123,7 @@ export default function ClassesPage() {
         )}
       </div>
 
-      <div className="mt-4 flex gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <select
           value={filterGrade}
           onChange={(e) => {
@@ -156,7 +156,7 @@ export default function ClassesPage() {
         </select>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
@@ -233,8 +233,8 @@ export default function ClassesPage() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] px-4">
-          <form onSubmit={handleSubmit} className="w-full max-w-[520px] rounded-xl bg-white p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+          <form onSubmit={handleSubmit} className="w-full max-w-[520px] rounded-xl bg-canvas p-6">
             <h2 className="text-lg font-semibold text-ink">{editing ? "Edit" : "Tambah"} Kelas</h2>
             <div className="mt-4 space-y-4">
               <div>

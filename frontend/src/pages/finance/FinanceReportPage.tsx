@@ -49,7 +49,7 @@ export default function FinanceReportPage() {
     <div>
       <h1 className="text-2xl font-semibold text-ink tracking-tight">Laporan Keuangan</h1>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div>
           <label htmlFor="report-class" className="block text-sm font-medium text-body">
             Kelas
@@ -90,7 +90,7 @@ export default function FinanceReportPage() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
         {amountCards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-hairline bg-white p-4">
+          <div key={c.label} className="rounded-lg border border-hairline bg-canvas p-4">
             <p className="text-sm text-muted">{c.label}</p>
             <p className="mt-1 font-mono text-2xl font-semibold text-ink">{loading ? "-" : fmtRupiah(c.value)}</p>
           </div>
@@ -99,7 +99,7 @@ export default function FinanceReportPage() {
 
       <div className="mt-4 grid grid-cols-3 gap-4">
         {countCards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-hairline bg-white p-4">
+          <div key={c.label} className="rounded-lg border border-hairline bg-canvas p-4">
             <p className="text-sm text-muted">{c.label}</p>
             <p className="mt-1 font-mono text-2xl font-semibold text-ink">{loading ? "-" : c.value}</p>
           </div>

@@ -13,11 +13,11 @@ export const attendanceStatuses: AttendanceStatus[] = [
 // Kelas Tailwind untuk badge status; tidak mengandalkan warna saja karena
 // teks label selalu ikut ditampilkan (aksesibilitas).
 export const statusBadgeClass: Record<AttendanceStatus, string> = {
-  hadir: "bg-green-100 text-success",
-  terlambat: "bg-amber-100 text-warning",
-  izin: "bg-sky-100 text-info",
-  sakit: "bg-sky-100 text-info",
-  alpa: "bg-red-100 text-danger",
+  hadir: "bg-success-soft text-success",
+  terlambat: "bg-warning-soft text-warning",
+  izin: "bg-info-soft text-info",
+  sakit: "bg-info-soft text-info",
+  alpa: "bg-danger-soft text-danger",
 };
 
 export interface RosterRow {

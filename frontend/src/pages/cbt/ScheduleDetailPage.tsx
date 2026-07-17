@@ -30,7 +30,7 @@ function ResultCards({ result }: { result: ExamResult }) {
   return (
     <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
       {cards.map((c) => (
-        <div key={c.label} className="rounded-lg border border-hairline bg-white p-4">
+        <div key={c.label} className="rounded-lg border border-hairline bg-canvas p-4">
           <p className="text-sm text-muted">{c.label}</p>
           <p className="mt-1 font-mono text-2xl font-semibold text-ink">{c.value}</p>
         </div>
@@ -97,10 +97,10 @@ export default function ScheduleDetailPage() {
   }
 
   if (loading) {
-    return <div className="rounded-lg border border-hairline bg-white p-8 text-center text-muted">Memuat...</div>;
+    return <div className="rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">Memuat...</div>;
   }
   if (!schedule) {
-    return <div className="rounded-lg border border-hairline bg-white p-8 text-center text-muted">Jadwal tidak ditemukan.</div>;
+    return <div className="rounded-lg border border-hairline bg-canvas p-8 text-center text-muted">Jadwal tidak ditemukan.</div>;
   }
 
   return (
@@ -135,7 +135,7 @@ export default function ScheduleDetailPage() {
 
   function renderHeader(s: ExamSchedule) {
     return (
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline bg-white p-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline bg-canvas p-4">
         <div className="space-y-1 text-sm">
           <p>
             <span className="text-muted">Paket: </span>
@@ -175,7 +175,7 @@ export default function ScheduleDetailPage() {
 
   function renderMonitoring() {
     return (
-      <div className="mt-6 overflow-hidden rounded-lg border border-hairline bg-white">
+      <div className="mt-6 overflow-hidden rounded-lg border border-hairline bg-canvas">
         <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
           <span className="text-sm font-semibold text-ink">Monitoring Peserta</span>
           <button type="button" onClick={loadParticipants} className="text-sm text-primary hover:underline">
