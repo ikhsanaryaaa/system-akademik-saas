@@ -42,6 +42,8 @@ var Permissions = []PermissionDef{
 	{"user.delete", "Menghapus user"},
 	{"role.read", "Melihat daftar role dan permission"},
 
+	{"audit.read", "Melihat jejak audit aktivitas sistem"},
+
 	{"master.read", "Melihat data master"},
 	{"master.create", "Membuat data master"},
 	{"master.update", "Mengubah data master"},

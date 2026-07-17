@@ -67,6 +67,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	now := time.Now()
 	h.db.Model(&user).Update("last_login_at", &now)
 
+	h.recordAudit(c, &user.ID, user.Username, "login")
+
 	response.OK(c, "Login berhasil", gin.H{
 		"token": token,
 		"user": gin.H{
@@ -80,7 +82,39 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 // Logout bersifat stateless pada sisi server; client cukup membuang token.
 func (h *AuthHandler) Logout(c *gin.Context) {
+	if raw, exists := c.Get(middleware.CtxUserID); exists {
+		if id, ok := raw.(uuid.UUID); ok {
+			username, _ := c.Get(middleware.CtxUsername)
+			name, _ := username.(string)
+			h.recordAudit(c, &id, name, "logout")
+		}
+	}
 	response.OK(c, "Logout berhasil", nil)
+}
+
+// recordAudit mencatat aktivitas autentikasi (login, logout) ke tabel audit
+// secara best-effort tanpa mengganggu alur utama request.
+func (h *AuthHandler) recordAudit(c *gin.Context, userID *uuid.UUID, username, action string) {
+	entry := model.AuditLog{
+		UserID:     userID,
+		Username:   username,
+		Action:     action,
+		Resource:   "auth",
+		Method:     c.Request.Method,
+		Path:       c.Request.URL.Path,
+		StatusCode: http.StatusOK,
+		IPAddress:  c.ClientIP(),
+		UserAgent:  auditUserAgent(c.Request.UserAgent()),
+	}
+	h.db.Create(&entry)
+}
+
+// auditUserAgent memotong user agent agar muat di kolom database.
+func auditUserAgent(ua string) string {
+	if len(ua) > 255 {
+		return ua[:255]
+	}
+	return ua
 }
 
 // Me mengembalikan profil user yang sedang login beserta permission-nya.

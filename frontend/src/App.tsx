@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import DashboardPage from "./pages/Dashboard";
 import UsersPage from "./pages/users/UsersPage";
 import ChangePasswordPage from "./pages/ChangePassword";
+import AuditLogPage from "./pages/AuditLogPage";
 import AcademicYearsPage from "./pages/master/AcademicYearsPage";
 import GradeLevelsPage from "./pages/master/GradeLevelsPage";
 import MajorsPage from "./pages/master/MajorsPage";
@@ -185,6 +186,17 @@ export default function App() {
           <RequireAuth permission="user.read">
             <AppShell>
               <UsersPage />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/audit-logs"
+        element={
+          <RequireAuth permission="audit.read">
+            <AppShell>
+              <AuditLogPage />
             </AppShell>
           </RequireAuth>
         }

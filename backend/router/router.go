@@ -90,6 +90,7 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	examRoomHandler := handler.NewExamRoomHandler(db)
 	examParticipantHandler := handler.NewExamParticipantHandler(db)
 	examResultHandler := handler.NewExamResultHandler(db)
+	auditLogHandler := handler.NewAuditLogHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -101,12 +102,18 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		// Route yang butuh autentikasi.
 		auth := api.Group("")
 		auth.Use(middleware.Auth(jwtManager))
+		// AuditWrite mencatat seluruh aksi tulis (create, update, delete) yang
+		// berhasil pada route terautentikasi. Login dan logout dicatat terpisah
+		// di dalam AuthHandler karena login berada di luar group ini.
+		auth.Use(middleware.AuditWrite(db))
 		{
 			auth.POST("/auth/logout", authHandler.Logout)
 			auth.GET("/auth/me", authHandler.Me)
 			auth.POST("/auth/change-password", authHandler.ChangePassword)
 
 			auth.GET("/roles", middleware.RequirePermission("role.read"), roleHandler.List)
+
+			auth.GET("/audit-logs", middleware.RequirePermission("audit.read"), auditLogHandler.List)
 
 			auth.GET("/users", middleware.RequirePermission("user.read"), userHandler.List)
 			auth.GET("/users/:id", middleware.RequirePermission("user.read"), userHandler.Detail)
