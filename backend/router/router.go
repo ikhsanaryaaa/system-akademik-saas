@@ -84,6 +84,12 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	paymentTypeHandler := handler.NewPaymentTypeHandler(db)
 	invoiceHandler := handler.NewInvoiceHandler(db)
 	financeReportHandler := handler.NewFinanceReportHandler(db)
+	questionHandler := handler.NewQuestionHandler(db)
+	examPackageHandler := handler.NewExamPackageHandler(db)
+	examScheduleHandler := handler.NewExamScheduleHandler(db)
+	examRoomHandler := handler.NewExamRoomHandler(db)
+	examParticipantHandler := handler.NewExamParticipantHandler(db)
+	examResultHandler := handler.NewExamResultHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -230,6 +236,56 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.GET("/invoices/:id/message", readFin, invoiceHandler.Message)
 
 			auth.GET("/finance/report", readFin, financeReportHandler.Report)
+
+			// CBT (Computer Based Test) untuk proktor dan pengawas.
+			readCbt := middleware.RequirePermission("cbt.read")
+			writeCbt := middleware.RequirePermission("cbt.create")
+			updateCbt := middleware.RequirePermission("cbt.update")
+			deleteCbt := middleware.RequirePermission("cbt.delete")
+			monitorCbt := middleware.RequirePermission("cbt.monitor")
+			controlCbt := middleware.RequirePermission("cbt.control")
+
+			// Bank soal.
+			auth.GET("/questions", readCbt, questionHandler.List)
+			auth.POST("/questions", writeCbt, questionHandler.Create)
+			auth.PUT("/questions/:id", updateCbt, questionHandler.Update)
+			auth.DELETE("/questions/:id", deleteCbt, questionHandler.Delete)
+
+			// Paket ujian.
+			auth.GET("/exam-packages", readCbt, examPackageHandler.List)
+			auth.POST("/exam-packages", writeCbt, examPackageHandler.Create)
+			auth.PUT("/exam-packages/:id", updateCbt, examPackageHandler.Update)
+			auth.DELETE("/exam-packages/:id", deleteCbt, examPackageHandler.Delete)
+			auth.GET("/exam-packages/:id/items", readCbt, examPackageHandler.Items)
+			auth.POST("/exam-packages/:id/items", updateCbt, examPackageHandler.AddItem)
+			auth.DELETE("/exam-packages/:id/items/:itemId", updateCbt, examPackageHandler.RemoveItem)
+
+			// Jadwal ujian, ruang, dan pengawas.
+			auth.GET("/exam-schedules", readCbt, examScheduleHandler.List)
+			auth.GET("/exam-schedules/:id", readCbt, examScheduleHandler.Detail)
+			auth.POST("/exam-schedules", writeCbt, examScheduleHandler.Create)
+			auth.PUT("/exam-schedules/:id", updateCbt, examScheduleHandler.Update)
+			auth.DELETE("/exam-schedules/:id", deleteCbt, examScheduleHandler.Delete)
+			auth.POST("/exam-schedules/:id/token", controlCbt, examScheduleHandler.ReleaseToken)
+
+			auth.GET("/exam-schedules/:id/rooms", readCbt, examRoomHandler.List)
+			auth.POST("/exam-schedules/:id/rooms", updateCbt, examRoomHandler.Create)
+			auth.DELETE("/exam-schedules/:id/rooms/:roomId", updateCbt, examRoomHandler.Delete)
+
+			// Alokasi peserta.
+			auth.GET("/exam-schedules/:id/participants", monitorCbt, examParticipantHandler.List)
+			auth.POST("/exam-schedules/:id/participants", updateCbt, examParticipantHandler.Allocate)
+			auth.DELETE("/exam-schedules/:id/participants/:participantId", updateCbt, examParticipantHandler.Remove)
+
+			// Kontrol sesi dan pelanggaran (proktor dan pengawas).
+			auth.POST("/exam-participants/:participantId/control", controlCbt, examParticipantHandler.Control)
+			auth.GET("/exam-participants/:participantId/violations", monitorCbt, examParticipantHandler.Violations)
+			auth.POST("/exam-participants/:participantId/violations", monitorCbt, examParticipantHandler.AddViolation)
+			auth.PUT("/exam-participants/:participantId/score", updateCbt, examParticipantHandler.SetScore)
+
+			// Hasil, laporan, dan integrasi nilai.
+			auth.GET("/exam-schedules/:id/report", readCbt, examResultHandler.Report)
+			auth.POST("/exam-schedules/:id/push-grading", updateCbt, examResultHandler.PushToGrading)
 		}
 	}
 
