@@ -17,6 +17,28 @@ import RoomsSection from "./RoomsSection";
 import AllocateSection from "./AllocateSection";
 import PushGradingSection from "./PushGradingSection";
 
+// ResultCards menampilkan rekap hasil ujian. Komponen murni tanpa state,
+// diletakkan di module scope agar tidak dibangun ulang tiap render.
+function ResultCards({ result }: { result: ExamResult }) {
+  const cards = [
+    { label: "Total Peserta", value: result.total_participant },
+    { label: "Sudah Dinilai", value: result.scored_count },
+    { label: "Rata-rata", value: result.average_score.toFixed(1) },
+    { label: "Tertinggi", value: result.highest_score.toFixed(1) },
+    { label: "Terendah", value: result.lowest_score.toFixed(1) },
+  ];
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
+      {cards.map((c) => (
+        <div key={c.label} className="rounded-lg border border-hairline bg-white p-4">
+          <p className="text-sm text-muted">{c.label}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-ink">{c.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ScheduleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { can } = useAuth();
@@ -92,7 +114,7 @@ export default function ScheduleDetailPage() {
       {message && <p className="mt-2 text-sm text-success">{message}</p>}
 
       {renderHeader(schedule)}
-      {result && renderResult(result)}
+      {result && <ResultCards result={result} />}
       <RoomsSection
         scheduleId={id!}
         rooms={rooms}
@@ -147,26 +169,6 @@ export default function ScheduleDetailPage() {
             </button>
           )}
         </div>
-      </div>
-    );
-  }
-
-  function renderResult(r: ExamResult) {
-    const cards = [
-      { label: "Total Peserta", value: r.total_participant },
-      { label: "Sudah Dinilai", value: r.scored_count },
-      { label: "Rata-rata", value: r.average_score.toFixed(1) },
-      { label: "Tertinggi", value: r.highest_score.toFixed(1) },
-      { label: "Terendah", value: r.lowest_score.toFixed(1) },
-    ];
-    return (
-      <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-hairline bg-white p-4">
-            <p className="text-sm text-muted">{c.label}</p>
-            <p className="mt-1 font-mono text-2xl font-semibold text-ink">{c.value}</p>
-          </div>
-        ))}
       </div>
     );
   }
