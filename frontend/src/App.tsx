@@ -46,6 +46,14 @@ import LeavePermitsPage from "./pages/piket/LeavePermitsPage";
 import InternshipPlacesPage from "./pages/bkk/InternshipPlacesPage";
 import InternshipsPage from "./pages/bkk/InternshipsPage";
 import JobVacanciesPage from "./pages/bkk/JobVacanciesPage";
+import MaterialsPage from "./pages/lms/MaterialsPage";
+import AssignmentsPage from "./pages/lms/AssignmentsPage";
+import SubmissionsPage from "./pages/lms/SubmissionsPage";
+import QuizzesPage from "./pages/lms/QuizzesPage";
+import QuizQuestionsPage from "./pages/lms/QuizQuestionsPage";
+import ForumThreadsPage from "./pages/lms/ForumThreadsPage";
+import ForumPostsPage from "./pages/lms/ForumPostsPage";
+import LmsReportPage from "./pages/lms/LmsReportPage";
 
 // masterRoute membungkus halaman master data dengan guard permission master.read.
 function masterRoute(element: ReactNode) {
@@ -114,6 +122,15 @@ function piketRoute(element: ReactNode) {
 function bkkRoute(element: ReactNode) {
   return (
     <RequireAuth permission="bkk.read">
+      <AppShell>{element}</AppShell>
+    </RequireAuth>
+  );
+}
+
+// lmsRoute membungkus halaman LMS dengan guard permission lms.read.
+function lmsRoute(element: ReactNode) {
+  return (
+    <RequireAuth permission="lms.read">
       <AppShell>{element}</AppShell>
     </RequireAuth>
   );
@@ -204,6 +221,15 @@ export default function App() {
       <Route path="/bkk/places" element={bkkRoute(<InternshipPlacesPage />)} />
       <Route path="/bkk/internships" element={bkkRoute(<InternshipsPage />)} />
       <Route path="/bkk/vacancies" element={bkkRoute(<JobVacanciesPage />)} />
+
+      <Route path="/lms/materials" element={lmsRoute(<MaterialsPage />)} />
+      <Route path="/lms/assignments" element={lmsRoute(<AssignmentsPage />)} />
+      <Route path="/lms/assignments/:id/submissions" element={lmsRoute(<SubmissionsPage />)} />
+      <Route path="/lms/quizzes" element={lmsRoute(<QuizzesPage />)} />
+      <Route path="/lms/quizzes/:id/questions" element={lmsRoute(<QuizQuestionsPage />)} />
+      <Route path="/lms/forum" element={lmsRoute(<ForumThreadsPage />)} />
+      <Route path="/lms/forum/:id/posts" element={lmsRoute(<ForumPostsPage />)} />
+      <Route path="/lms/report" element={lmsRoute(<LmsReportPage />)} />
     </Routes>
   );
 }

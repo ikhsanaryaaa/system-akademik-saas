@@ -76,6 +76,11 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	internshipPlaceHandler := handler.NewInternshipPlaceHandler(db)
 	internshipHandler := handler.NewInternshipHandler(db)
 	jobVacancyHandler := handler.NewJobVacancyHandler(db)
+	materialHandler := handler.NewMaterialHandler(db)
+	assignmentHandler := handler.NewAssignmentHandler(db)
+	quizHandler := handler.NewQuizHandler(db)
+	forumThreadHandler := handler.NewForumThreadHandler(db)
+	lmsReportHandler := handler.NewLmsReportHandler(db)
 
 	api := r.Group("/api")
 	{
@@ -179,6 +184,30 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerBkkCRUD(auth, "/internship-places", internshipPlaceHandler.List, internshipPlaceHandler.Create, internshipPlaceHandler.Update, internshipPlaceHandler.Delete)
 			registerBkkCRUD(auth, "/internships", internshipHandler.List, internshipHandler.Create, internshipHandler.Update, internshipHandler.Delete)
 			registerBkkCRUD(auth, "/job-vacancies", jobVacancyHandler.List, jobVacancyHandler.Create, jobVacancyHandler.Update, jobVacancyHandler.Delete)
+
+			// Learning Management System.
+			registerLmsCRUD(auth, "/materials", materialHandler.List, materialHandler.Create, materialHandler.Update, materialHandler.Delete)
+			registerLmsCRUD(auth, "/assignments", assignmentHandler.List, assignmentHandler.Create, assignmentHandler.Update, assignmentHandler.Delete)
+			registerLmsCRUD(auth, "/quizzes", quizHandler.List, quizHandler.Create, quizHandler.Update, quizHandler.Delete)
+			registerLmsCRUD(auth, "/forum-threads", forumThreadHandler.List, forumThreadHandler.Create, forumThreadHandler.Update, forumThreadHandler.Delete)
+
+			readLms := middleware.RequirePermission("lms.read")
+			writeLms := middleware.RequirePermission("lms.create")
+			manageLms := middleware.RequirePermission("lms.update")
+			deleteLms := middleware.RequirePermission("lms.delete")
+
+			auth.GET("/assignments/:id/submissions", readLms, assignmentHandler.Submissions)
+			auth.PUT("/assignments/:id/submissions/:submissionId", manageLms, assignmentHandler.GradeSubmission)
+
+			auth.GET("/quizzes/:id/questions", readLms, quizHandler.Questions)
+			auth.POST("/quizzes/:id/questions", writeLms, quizHandler.AddQuestion)
+			auth.DELETE("/quizzes/:id/questions/:questionId", deleteLms, quizHandler.DeleteQuestion)
+
+			auth.GET("/forum-threads/:id/posts", readLms, forumThreadHandler.Posts)
+			auth.POST("/forum-threads/:id/posts", writeLms, forumThreadHandler.AddPost)
+			auth.DELETE("/forum-threads/:id/posts/:postId", deleteLms, forumThreadHandler.DeletePost)
+
+			auth.GET("/lms/report", readLms, lmsReportHandler.Report)
 		}
 	}
 
@@ -237,4 +266,13 @@ func registerBkkCRUD(g *gin.RouterGroup, path string, list, create, update, del 
 	g.POST(path, middleware.RequirePermission("bkk.create"), create)
 	g.PUT(path+"/:id", middleware.RequirePermission("bkk.update"), update)
 	g.DELETE(path+"/:id", middleware.RequirePermission("bkk.delete"), del)
+}
+
+// registerLmsCRUD mendaftarkan route CRUD untuk entitas LMS,
+// dengan permission lms.read untuk baca dan lms.create/update/delete untuk tulis.
+func registerLmsCRUD(g *gin.RouterGroup, path string, list, create, update, del gin.HandlerFunc) {
+	g.GET(path, middleware.RequirePermission("lms.read"), list)
+	g.POST(path, middleware.RequirePermission("lms.create"), create)
+	g.PUT(path+"/:id", middleware.RequirePermission("lms.update"), update)
+	g.DELETE(path+"/:id", middleware.RequirePermission("lms.delete"), del)
 }

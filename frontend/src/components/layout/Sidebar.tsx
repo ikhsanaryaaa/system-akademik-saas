@@ -98,6 +98,16 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "LMS",
+    items: [
+      { label: "Materi", to: "/lms/materials", permission: "lms.read" },
+      { label: "Tugas", to: "/lms/assignments", permission: "lms.read" },
+      { label: "Quiz", to: "/lms/quizzes", permission: "lms.read" },
+      { label: "Forum Diskusi", to: "/lms/forum", permission: "lms.read" },
+      { label: "Laporan LMS", to: "/lms/report", permission: "lms.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },
