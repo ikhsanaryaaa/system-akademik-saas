@@ -17,8 +17,6 @@ export const difficultyLabel: Record<string, string> = {
   hard: "Sulit",
 };
 
-export const scheduleStatuses = ["scheduled", "ongoing", "finished"];
-
 export const scheduleStatusLabel: Record<string, string> = {
   scheduled: "Terjadwal",
   ongoing: "Berlangsung",
