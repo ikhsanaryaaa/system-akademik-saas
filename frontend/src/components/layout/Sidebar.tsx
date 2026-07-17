@@ -108,6 +108,14 @@ const groups: MenuGroup[] = [
     ],
   },
   {
+    label: "Keuangan",
+    items: [
+      { label: "Jenis Pembayaran", to: "/finance/payment-types", permission: "finance.read" },
+      { label: "Tagihan", to: "/finance/invoices", permission: "finance.read" },
+      { label: "Laporan Keuangan", to: "/finance/report", permission: "finance.read" },
+    ],
+  },
+  {
     label: "Sistem",
     items: [
       { label: "Manajemen User", to: "/users", permission: "user.read" },

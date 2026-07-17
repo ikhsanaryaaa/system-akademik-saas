@@ -83,6 +83,11 @@ var Permissions = []PermissionDef{
 	{"lms.create", "Membuat data LMS"},
 	{"lms.update", "Mengubah data LMS"},
 	{"lms.delete", "Menghapus data LMS"},
+
+	{"finance.read", "Melihat data keuangan"},
+	{"finance.create", "Membuat data keuangan"},
+	{"finance.update", "Mengubah data keuangan"},
+	{"finance.delete", "Menghapus data keuangan"},
 }
 
 // masterPermissionKeys mengembalikan seluruh key permission master data.
@@ -153,6 +158,17 @@ func bkkPermissionKeys() []string {
 // lmsPermissionKeys mengembalikan seluruh key permission LMS.
 func lmsPermissionKeys() []string {
 	return []string{"lms.read", "lms.create", "lms.update", "lms.delete"}
+}
+
+// financePermissionKeys mengembalikan seluruh key permission keuangan.
+func financePermissionKeys() []string {
+	return []string{"finance.read", "finance.create", "finance.update", "finance.delete"}
+}
+
+// BendaharaPermissions mengembalikan permission untuk role Bendahara:
+// mengelola data keuangan ditambah membaca data master sebagai referensi.
+func BendaharaPermissions() []string {
+	return append(financePermissionKeys(), "master.read")
 }
 
 // WakilKesiswaanPermissions mengembalikan permission untuk role Wakil Kesiswaan:
