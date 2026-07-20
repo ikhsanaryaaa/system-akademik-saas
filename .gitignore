@@ -23,6 +23,7 @@ build/
 *.test
 *.out
 backend/tmp/
+backend/uploads/
 vendor/
 
 # TypeScript build info

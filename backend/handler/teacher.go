@@ -19,11 +19,12 @@ func NewTeacherHandler(db *gorm.DB) *TeacherHandler {
 }
 
 type teacherRequest struct {
-	Name   string `json:"name" binding:"required"`
-	NIP    string `json:"nip"`
-	Email  string `json:"email" binding:"omitempty,email"`
-	Phone  string `json:"phone"`
-	Gender string `json:"gender"`
+	Name     string `json:"name" binding:"required"`
+	NIP      string `json:"nip"`
+	Email    string `json:"email" binding:"omitempty,email"`
+	Phone    string `json:"phone"`
+	Gender   string `json:"gender" binding:"omitempty,oneof=L P"`
+	PhotoURL string `json:"photo_url"`
 }
 
 func (h *TeacherHandler) List(c *gin.Context) {
@@ -41,7 +42,7 @@ func (h *TeacherHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
-	item := model.Teacher{Name: req.Name, NIP: req.NIP, Email: req.Email, Phone: req.Phone, Gender: req.Gender}
+	item := model.Teacher{Name: req.Name, NIP: req.NIP, Email: req.Email, Phone: req.Phone, Gender: req.Gender, PhotoURL: req.PhotoURL}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan pendidik, pastikan NIP unik", nil)
 		return
@@ -70,6 +71,7 @@ func (h *TeacherHandler) Update(c *gin.Context) {
 	item.Email = req.Email
 	item.Phone = req.Phone
 	item.Gender = req.Gender
+	item.PhotoURL = req.PhotoURL
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan pendidik", nil)
 		return

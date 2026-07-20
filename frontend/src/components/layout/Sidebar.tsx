@@ -3,8 +3,6 @@ import { createPortal } from "react-dom";
 import {
   LayoutDashboard,
   CalendarRange,
-  Layers3,
-  GitBranch,
   School,
   UserCog,
   Users,
@@ -89,13 +87,11 @@ const groups: MenuGroup[] = [
     label: "Master Data",
     icon: Database,
     items: [
-      { label: "Tahun Ajaran", to: "/master/academic-years", icon: CalendarRange, permission: "master.read" },
-      { label: "Tingkatan", to: "/master/grade-levels", icon: Layers3, permission: "master.read" },
-      { label: "Jurusan", to: "/master/majors", icon: GitBranch, permission: "master.read" },
+      { label: "Akademik", to: "/master/academic", icon: CalendarRange, permission: "master.read" },
       { label: "Kelas", to: "/master/classes", icon: School, permission: "master.read" },
+      { label: "Siswa", to: "/master/students", icon: GraduationCap, permission: "master.read" },
       { label: "Pendidik", to: "/master/teachers", icon: UserCog, permission: "master.read" },
       { label: "Tenaga Non-Kependidikan", to: "/master/staff", icon: Users, permission: "master.read" },
-      { label: "Siswa", to: "/master/students", icon: GraduationCap, permission: "master.read" },
     ],
   },
   {

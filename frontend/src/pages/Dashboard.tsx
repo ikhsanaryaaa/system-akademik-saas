@@ -7,13 +7,14 @@ import {
   Wallet,
   Activity,
   ServerCog,
-  type LucideIcon,
+  CalendarDays,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { loadDashboard, type DashboardData } from "../lib/dashboard";
 import { fmtRupiah } from "../lib/finance";
 import { statusBadgeClass } from "../lib/attendance";
 import { fmtDate } from "../lib/format";
+import { useAcademicYear } from "../context/AcademicYearContext";
 
 // nfmt memformat angka ringkas dengan pemisah ribuan lokal.
 function nfmt(v: number | null): string {
@@ -22,6 +23,8 @@ function nfmt(v: number | null): string {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { years, activeId } = useAcademicYear();
+  const activeYear = years.find((year) => year.id === activeId) ?? years.find((year) => year.is_active);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,55 +36,108 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Dashboard</h1>
-      <p className="mt-1 text-sm text-muted">Selamat datang, {user?.name}.</p>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Dashboard</h1>
+        <p className="mt-1 text-sm text-muted">Selamat datang, {user?.name}.</p>
+      </div>
 
-      <StatCards data={data} loading={loading} />
+      <CompactStats data={data} loading={loading} activeYear={activeYear} />
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <FinanceCard data={data} loading={loading} />
+        <AttendanceTodayCard data={data} loading={loading} />
         <StatusCard data={data} loading={loading} />
       </div>
 
+      <FinanceCard data={data} loading={loading} />
       <ActivityCard data={data} loading={loading} />
     </div>
   );
 }
 
-// StatCards menampilkan empat metrik utama sebagai kartu ringkas.
-function StatCards({ data, loading }: { data: DashboardData | null; loading: boolean }) {
-  const cards: { label: string; value: string; hint: string; icon: LucideIcon }[] = [
-    { label: "Total Siswa", value: nfmt(data?.totalStudents ?? null), hint: "siswa terdaftar", icon: GraduationCap },
-    { label: "Total Guru", value: nfmt(data?.totalTeachers ?? null), hint: "pendidik aktif", icon: Users },
-    { label: "Ruang Kelas", value: nfmt(data?.totalClasses ?? null), hint: "rombongan belajar", icon: School },
+// CompactStats menampilkan snapshot inti tanpa dekorasi berulang.
+function CompactStats({
+  data,
+  loading,
+  activeYear,
+}: {
+  data: DashboardData | null;
+  loading: boolean;
+  activeYear?: { name: string; is_active: boolean };
+}) {
+  const stats = [
+    { label: "Siswa", value: nfmt(data?.totalStudents ?? null), detail: "terdaftar", icon: GraduationCap },
+    { label: "Guru", value: nfmt(data?.totalTeachers ?? null), detail: "pendidik", icon: Users },
+    { label: "Kelas", value: nfmt(data?.totalClasses ?? null), detail: "rombongan belajar", icon: School },
     {
-      label: "Kehadiran Hari Ini",
-      value: data?.attendance ? `${data.attendance.rate}%` : "-",
-      hint: data?.attendance ? `${data.attendance.present}/${data.attendance.total} siswa masuk` : "belum ada data",
-      icon: ClipboardCheck,
+      label: "Tahun Ajaran",
+      value: activeYear?.name ?? "-",
+      detail: activeYear?.is_active ? "aktif" : "belum aktif",
+      icon: CalendarDays,
     },
   ];
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map((c) => {
-        const Icon = c.icon;
+    <div className="mt-6 grid grid-cols-1 overflow-hidden rounded-lg border border-hairline bg-canvas shadow-sm sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-hairline">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
         return (
-          <div key={c.label} className="rounded-lg border border-hairline bg-canvas p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-              <p className="text-sm text-muted">{c.label}</p>
-              <span className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary">
-                <Icon className="h-[18px] w-[18px]" />
-              </span>
+          <div key={stat.label} className="flex items-center gap-4 border-b border-hairline px-5 py-4 last:border-b-0 sm:border-b-0">
+            <Icon className="h-5 w-5 shrink-0 text-muted" />
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">{stat.label}</p>
+              <p className="mt-0.5 font-mono text-2xl font-semibold text-ink">{loading ? "…" : stat.value}</p>
+              <p className="text-xs text-muted">{stat.detail}</p>
             </div>
-            <p className="mt-3 font-mono text-3xl font-semibold text-ink">
-              {loading ? "…" : c.value}
-            </p>
-            <p className="mt-1 text-xs text-muted">{c.hint}</p>
           </div>
         );
       })}
     </div>
+  );
+}
+
+// AttendanceTodayCard menonjolkan kondisi kehadiran operasional hari ini.
+function AttendanceTodayCard({ data, loading }: { data: DashboardData | null; loading: boolean }) {
+  const attendance = data?.attendance;
+
+  return (
+    <section className="rounded-lg border border-hairline bg-canvas p-5 shadow-sm lg:col-span-2">
+      <div className="flex flex-wrap items-center justify-between gap-5">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-md bg-primary text-white">
+            <ClipboardCheck className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-sm font-semibold text-ink">Kehadiran Hari Ini</h2>
+            <p className="mt-0.5 text-xs text-muted">Ringkasan presensi siswa hari ini</p>
+          </div>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted">Memuat…</p>
+        ) : attendance ? (
+          <div className="min-w-[240px] flex-1 sm:max-w-md">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="font-mono text-4xl font-semibold tracking-tight text-ink">{attendance.rate}%</p>
+                <p className="mt-1 text-xs text-muted">
+                  <span className="font-mono text-success">{nfmt(attendance.present)}</span> dari{" "}
+                  <span className="font-mono">{nfmt(attendance.total)}</span> siswa hadir
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                Tercatat
+              </span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-strong">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(attendance.rate, 100)}%` }} />
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted">Belum ada data kehadiran hari ini.</p>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -97,7 +153,7 @@ function FinanceCard({ data, loading }: { data: DashboardData | null; loading: b
     f && f.total_amount > 0 ? Math.round((f.paid_amount / f.total_amount) * 100) : 0;
 
   return (
-    <div className="rounded-lg border border-hairline bg-canvas p-5 shadow-sm lg:col-span-2">
+    <div className="mt-4 rounded-lg border border-hairline bg-canvas p-5 shadow-sm">
       <div className="flex items-center gap-2">
         <Wallet className="h-[18px] w-[18px] text-muted" />
         <h2 className="text-sm font-semibold text-ink">Ringkasan Keuangan</h2>
@@ -193,18 +249,16 @@ function ActivityCard({ data, loading }: { data: DashboardData | null; loading: 
         <p className="px-5 py-8 text-center text-sm text-muted">Belum ada aktivitas absensi hari ini.</p>
       ) : (
         <ul className="divide-y divide-hairline">
-          {items.map((a) => (
-            <li key={a.id} className="flex items-center justify-between px-5 py-3">
-              <div className="min-w-0">
+          {items.slice(0, 5).map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-2.5 sm:flex-nowrap">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink">{a.title}</p>
                 <p className="truncate text-xs text-muted">{a.detail}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass[a.status]}`}>
-                  {a.status}
-                </span>
-                <span className="font-mono text-xs text-muted">{fmtDate(a.date)}</span>
-              </div>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass[a.status]}`}>
+                {a.status}
+              </span>
+              <span className="shrink-0 font-mono text-xs text-muted">{fmtDate(a.date)}</span>
             </li>
           ))}
         </ul>
