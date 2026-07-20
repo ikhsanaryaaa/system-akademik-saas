@@ -15,6 +15,7 @@ type Staff struct {
 	Position  string    `gorm:"size:100" json:"position"`
 	Email     string    `gorm:"size:150" json:"email"`
 	Phone     string    `gorm:"size:30" json:"phone"`
+	PhotoURL  string    `gorm:"size:255" json:"photo_url"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

@@ -22,9 +22,10 @@ type Config struct {
 	DBSSLMode  string
 
 	CORSAllowOrigins []string
+	UploadDir        string
 
-	JWTSecret    string
-	JWTTTLHours  int
+	JWTSecret   string
+	JWTTTLHours int
 
 	BrandingSchoolName   string
 	BrandingPrimaryColor string
@@ -45,6 +46,7 @@ func Load() *Config {
 		DBName:               getEnv("DB_NAME", "sim_sekolah"),
 		DBSSLMode:            getEnv("DB_SSLMODE", "disable"),
 		CORSAllowOrigins:     splitAndTrim(getEnv("CORS_ALLOW_ORIGINS", "http://localhost:5173")),
+		UploadDir:            getEnv("UPLOAD_DIR", "./uploads"),
 		JWTSecret:            getEnv("JWT_SECRET", "ubah-secret-ini-di-production"),
 		JWTTTLHours:          getEnvInt("JWT_TTL_HOURS", 24),
 		BrandingSchoolName:   getEnv("BRANDING_SCHOOL_NAME", "Nama Sekolah"),

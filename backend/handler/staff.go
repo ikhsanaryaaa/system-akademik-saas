@@ -24,6 +24,7 @@ type staffRequest struct {
 	Position string `json:"position"`
 	Email    string `json:"email" binding:"omitempty,email"`
 	Phone    string `json:"phone"`
+	PhotoURL string `json:"photo_url"`
 }
 
 func (h *StaffHandler) List(c *gin.Context) {
@@ -41,7 +42,7 @@ func (h *StaffHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
-	item := model.Staff{Name: req.Name, NIP: req.NIP, Position: req.Position, Email: req.Email, Phone: req.Phone}
+	item := model.Staff{Name: req.Name, NIP: req.NIP, Position: req.Position, Email: req.Email, Phone: req.Phone, PhotoURL: req.PhotoURL}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan data, pastikan NIP unik", nil)
 		return
@@ -70,6 +71,7 @@ func (h *StaffHandler) Update(c *gin.Context) {
 	item.Position = req.Position
 	item.Email = req.Email
 	item.Phone = req.Phone
+	item.PhotoURL = req.PhotoURL
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan data", nil)
 		return

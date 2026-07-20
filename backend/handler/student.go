@@ -23,12 +23,13 @@ type studentRequest struct {
 	Name           string     `json:"name" binding:"required"`
 	NIS            string     `json:"nis"`
 	NISN           string     `json:"nisn"`
-	Gender         string     `json:"gender"`
+	Gender         string     `json:"gender" binding:"omitempty,oneof=L P"`
 	BirthPlace     string     `json:"birth_place"`
 	BirthDate      *time.Time `json:"birth_date"`
 	ClassID        *uuid.UUID `json:"class_id"`
 	MajorID        *uuid.UUID `json:"major_id"`
 	AcademicYearID *uuid.UUID `json:"academic_year_id"`
+	PhotoURL       string     `json:"photo_url"`
 }
 
 // List mendukung filter per class_id, major_id, academic_year_id, pencarian nama, plus pagination.
@@ -82,6 +83,7 @@ func (h *StudentHandler) Create(c *gin.Context) {
 		ClassID:        req.ClassID,
 		MajorID:        req.MajorID,
 		AcademicYearID: req.AcademicYearID,
+		PhotoURL:       req.PhotoURL,
 	}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan siswa, pastikan NIS dan NISN unik", nil)
@@ -115,6 +117,7 @@ func (h *StudentHandler) Update(c *gin.Context) {
 	item.ClassID = req.ClassID
 	item.MajorID = req.MajorID
 	item.AcademicYearID = req.AcademicYearID
+	item.PhotoURL = req.PhotoURL
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan siswa", nil)
 		return

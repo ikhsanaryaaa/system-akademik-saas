@@ -17,6 +17,7 @@ type Teacher struct {
 	Phone     string     `gorm:"size:30" json:"phone"`
 	Gender    string     `gorm:"size:10" json:"gender"`
 	UserID    *uuid.UUID `gorm:"type:uuid" json:"user_id,omitempty"`
+	PhotoURL  string     `gorm:"size:255" json:"photo_url"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 }

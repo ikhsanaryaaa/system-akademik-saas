@@ -12,6 +12,7 @@ import {
   type Teacher,
 } from "../../lib/master";
 import { useAuth } from "../../context/AuthContext";
+import EntityCard from "../../components/EntityCard";
 
 const PATH = "/classes";
 
@@ -123,91 +124,74 @@ export default function ClassesPage() {
         )}
       </div>
 
-      <div className="mt-4 flex gap-3 rounded-lg border border-hairline bg-canvas p-4">
-        <select
-          value={filterGrade}
-          onChange={(e) => {
-            setPage(1);
-            setFilterGrade(e.target.value);
-          }}
-          className="h-[38px] rounded-md border border-hairline px-3 text-sm"
-        >
-          <option value="">Semua Tingkatan</option>
-          {grades.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filterMajor}
-          onChange={(e) => {
-            setPage(1);
-            setFilterMajor(e.target.value);
-          }}
-          className="h-[38px] rounded-md border border-hairline px-3 text-sm"
-        >
-          <option value="">Semua Jurusan</option>
-          {majors.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
+      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-hairline bg-canvas p-4 sm:flex-row sm:items-end">
+        <div className="w-full sm:w-auto">
+          <label htmlFor="class-grade-filter" className="block text-sm font-medium text-body">Tingkatan</label>
+          <select
+            id="class-grade-filter"
+            value={filterGrade}
+            onChange={(e) => {
+              setPage(1);
+              setFilterGrade(e.target.value);
+            }}
+            className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm sm:w-auto"
+          >
+            <option value="">Semua Tingkatan</option>
+            {grades.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="w-full sm:w-auto">
+          <label htmlFor="class-major-filter" className="block text-sm font-medium text-body">Jurusan</label>
+          <select
+            id="class-major-filter"
+            value={filterMajor}
+            onChange={(e) => {
+              setPage(1);
+              setFilterMajor(e.target.value);
+            }}
+            className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm sm:w-auto"
+          >
+            <option value="">Semua Jurusan</option>
+            {majors.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-              <th className="px-4 py-3">Nama</th>
-              <th className="px-4 py-3">Tingkatan</th>
-              <th className="px-4 py-3">Jurusan</th>
-              <th className="px-4 py-3">Wali Kelas</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Memuat...
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Belum ada kelas.
-                </td>
-              </tr>
-            ) : (
-              rows.map((r) => (
-                <tr key={r.id} className="border-t border-hairline hover:bg-surface-soft">
-                  <td className="px-4 py-3 text-ink">{r.name}</td>
-                  <td className="px-4 py-3">{r.grade_level?.name ?? "-"}</td>
-                  <td className="px-4 py-3">{r.major?.name ?? "-"}</td>
-                  <td className="px-4 py-3">{r.homeroom?.name ?? "-"}</td>
-                  <td className="px-4 py-3 text-right">
-                    {can("master.update") && (
-                      <button type="button" onClick={() => openEdit(r)} className="text-primary hover:underline">
-                        Edit
-                      </button>
-                    )}
-                    {can("master.delete") && (
-                      <button type="button"
-                        onClick={() => handleDelete(r.id)}
-                        className="ml-3 text-danger hover:underline"
-                      >
-                        Hapus
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <p className="mt-4 rounded-lg border border-hairline bg-canvas px-4 py-8 text-center text-sm text-muted">
+          Memuat...
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 rounded-lg border border-hairline bg-canvas px-4 py-8 text-center text-sm text-muted">
+          Belum ada kelas.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {rows.map((r) => (
+            <EntityCard
+              key={r.id}
+              title={r.name}
+              titleBadge
+              hidePhoto
+              rows={[
+                { label: "Tingkatan", value: r.grade_level?.name ?? "-" },
+                { label: "Jurusan", value: r.major?.name ?? "-" },
+                { label: "Wali Kelas", value: r.homeroom?.name ?? "-" },
+              ]}
+              onEdit={can("master.update") ? () => openEdit(r) : undefined}
+              onDelete={can("master.delete") ? () => handleDelete(r.id) : undefined}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-between text-sm text-muted">
         <span>Total {total} kelas</span>
@@ -243,7 +227,7 @@ export default function ClassesPage() {
                   value={form.name ?? ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
-                  className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
+                  className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
                 />
               </div>
               <div>
