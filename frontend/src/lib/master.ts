@@ -27,6 +27,7 @@ export interface Teacher {
   email?: string;
   phone?: string;
   gender?: string;
+  photo_url?: string;
 }
 
 export interface Staff {
@@ -36,6 +37,7 @@ export interface Staff {
   position?: string;
   email?: string;
   phone?: string;
+  photo_url?: string;
 }
 
 export interface ClassRow {
@@ -58,6 +60,7 @@ export interface StudentRow {
   gender?: string;
   class_id?: string;
   major_id?: string;
+  photo_url?: string;
   class?: ClassRow;
 }
 
@@ -81,6 +84,26 @@ export function updateItem<T>(path: string, id: string, body: unknown) {
 
 export function deleteItem(path: string, id: string) {
   return http.delete(`${path}/${id}`);
+}
+
+// uploadPhoto mengunggah satu file gambar dan mengembalikan URL publiknya.
+export function uploadPhoto(file: File) {
+  const fd = new FormData();
+  fd.append("file", file);
+  return http
+    .post<ApiResponse<{ url: string }>>("/uploads", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((r) => {
+      if (!r.data.data?.url) throw new Error("URL foto tidak tersedia");
+      return r.data.data.url;
+    });
+}
+
+// photoSrc mengubah path relatif dari server jadi URL gambar untuk <img>.
+export function photoSrc(url?: string) {
+  if (!url) return "";
+  return url.startsWith("http") ? url : `${import.meta.env.VITE_API_ORIGIN ?? ""}${url}`;
 }
 
 // Helper daftar dengan pagination dan filter untuk kelas dan siswa.

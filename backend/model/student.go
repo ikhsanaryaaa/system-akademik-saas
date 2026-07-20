@@ -26,6 +26,7 @@ type Student struct {
 	Major        *Major        `gorm:"foreignKey:MajorID" json:"major,omitempty"`
 	AcademicYear *AcademicYear `gorm:"foreignKey:AcademicYearID" json:"academic_year,omitempty"`
 
+	PhotoURL  string    `gorm:"size:255" json:"photo_url"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

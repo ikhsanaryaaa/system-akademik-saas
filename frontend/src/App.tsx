@@ -7,6 +7,7 @@ import DashboardPage from "./pages/Dashboard";
 import UsersPage from "./pages/users/UsersPage";
 import ChangePasswordPage from "./pages/ChangePassword";
 import AuditLogPage from "./pages/AuditLogPage";
+import AcademicPage from "./pages/master/AcademicPage";
 import AcademicYearsPage from "./pages/master/AcademicYearsPage";
 import GradeLevelsPage from "./pages/master/GradeLevelsPage";
 import MajorsPage from "./pages/master/MajorsPage";
@@ -213,6 +214,7 @@ export default function App() {
         }
       />
 
+      <Route path="/master/academic" element={masterRoute(<AcademicPage />)} />
       <Route path="/master/academic-years" element={masterRoute(<AcademicYearsPage />)} />
       <Route path="/master/grade-levels" element={masterRoute(<GradeLevelsPage />)} />
       <Route path="/master/majors" element={masterRoute(<MajorsPage />)} />

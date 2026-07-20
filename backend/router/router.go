@@ -30,6 +30,8 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		AllowCredentials: true,
 	}))
 
+	r.Static("/uploads", cfg.UploadDir)
+
 	jwtManager := appjwt.NewManager(cfg.JWTSecret, time.Duration(cfg.JWTTTLHours)*time.Hour)
 
 	healthHandler := handler.NewHealthHandler(db)
@@ -43,6 +45,7 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	staffHandler := handler.NewStaffHandler(db)
 	classHandler := handler.NewClassHandler(db)
 	studentHandler := handler.NewStudentHandler(db)
+	uploadHandler := handler.NewUploadHandler(cfg.UploadDir)
 	subjectHandler := handler.NewSubjectHandler(db)
 	classSubjectHandler := handler.NewClassSubjectHandler(db)
 	lessonScheduleHandler := handler.NewLessonScheduleHandler(db)
@@ -120,6 +123,8 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.POST("/users", middleware.RequirePermission("user.create"), userHandler.Create)
 			auth.PUT("/users/:id", middleware.RequirePermission("user.update"), userHandler.Update)
 			auth.DELETE("/users/:id", middleware.RequirePermission("user.delete"), userHandler.Delete)
+
+			auth.POST("/uploads", middleware.RequirePermission("master.create"), uploadHandler.Upload)
 
 			registerMasterCRUD(auth, "/academic-years", academicYearHandler.List, academicYearHandler.Create, academicYearHandler.Update, academicYearHandler.Delete)
 			registerMasterCRUD(auth, "/grade-levels", gradeLevelHandler.List, gradeLevelHandler.Create, gradeLevelHandler.Update, gradeLevelHandler.Delete)

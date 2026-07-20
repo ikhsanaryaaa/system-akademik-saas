@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/ikhsanaryaaa/system-akademik-saas/backend/config"
 	"github.com/ikhsanaryaaa/system-akademik-saas/backend/database"
@@ -12,6 +13,10 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	if err := os.MkdirAll(cfg.UploadDir, 0o755); err != nil {
+		log.Fatalf("gagal membuat folder upload: %v", err)
+	}
 
 	db, err := database.Connect(cfg)
 	if err != nil {

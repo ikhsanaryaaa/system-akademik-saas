@@ -8,6 +8,8 @@ import {
   type ClassRow,
 } from "../../lib/master";
 import { useAuth } from "../../context/AuthContext";
+import EntityCard from "../../components/EntityCard";
+import PhotoUpload from "../../components/PhotoUpload";
 
 const PATH = "/students";
 
@@ -81,6 +83,7 @@ export default function StudentsPage() {
       nisn: form.nisn,
       gender: form.gender,
       class_id: form.class_id || null,
+      photo_url: form.photo_url,
     };
     try {
       if (editing) await updateItem(PATH, editing.id, body);
@@ -114,85 +117,67 @@ export default function StudentsPage() {
         )}
       </div>
 
-      <div className="mt-4 flex gap-3 rounded-lg border border-hairline bg-canvas p-4">
-        <input
-          placeholder="Cari nama siswa..."
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-          className="h-[38px] flex-1 rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
-        />
-        <select
-          value={filterClass}
-          onChange={(e) => {
-            setPage(1);
-            setFilterClass(e.target.value);
-          }}
-          className="h-[38px] rounded-md border border-hairline px-3 text-sm"
-        >
-          <option value="">Semua Kelas</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-hairline bg-canvas p-4 sm:flex-row sm:items-end">
+        <div className="w-full sm:flex-1">
+          <label htmlFor="student-search" className="block text-sm font-medium text-body">Cari Siswa</label>
+          <input
+            id="student-search"
+            placeholder="Cari nama siswa..."
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
+          />
+        </div>
+        <div className="w-full sm:w-auto">
+          <label htmlFor="student-class-filter" className="block text-sm font-medium text-body">Kelas</label>
+          <select
+            id="student-class-filter"
+            value={filterClass}
+            onChange={(e) => {
+              setPage(1);
+              setFilterClass(e.target.value);
+            }}
+            className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm sm:w-auto"
+          >
+            <option value="">Semua Kelas</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-              <th className="px-4 py-3">Nama</th>
-              <th className="px-4 py-3">NIS</th>
-              <th className="px-4 py-3">NISN</th>
-              <th className="px-4 py-3">Kelas</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Memuat...
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  Belum ada siswa.
-                </td>
-              </tr>
-            ) : (
-              rows.map((s) => (
-                <tr key={s.id} className="border-t border-hairline hover:bg-surface-soft">
-                  <td className="px-4 py-3 text-ink">{s.name}</td>
-                  <td className="px-4 py-3 font-mono">{s.nis}</td>
-                  <td className="px-4 py-3 font-mono">{s.nisn}</td>
-                  <td className="px-4 py-3">{s.class?.name ?? "-"}</td>
-                  <td className="px-4 py-3 text-right">
-                    {can("master.update") && (
-                      <button type="button" onClick={() => openEdit(s)} className="text-primary hover:underline">
-                        Edit
-                      </button>
-                    )}
-                    {can("master.delete") && (
-                      <button type="button"
-                        onClick={() => handleDelete(s.id)}
-                        className="ml-3 text-danger hover:underline"
-                      >
-                        Hapus
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <p className="mt-4 rounded-lg border border-hairline bg-canvas px-4 py-8 text-center text-sm text-muted">
+          Memuat...
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 rounded-lg border border-hairline bg-canvas px-4 py-8 text-center text-sm text-muted">
+          Belum ada siswa.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {rows.map((s) => (
+            <EntityCard
+              key={s.id}
+              photo={s.photo_url}
+              title={s.name}
+              rows={[
+                { label: "NIS", value: s.nis || "-", mono: true },
+                { label: "NISN", value: s.nisn || "-", mono: true },
+                { label: "Kelas", value: s.class?.name ?? "-" },
+              ]}
+              onEdit={can("master.update") ? () => openEdit(s) : undefined}
+              onDelete={can("master.delete") ? () => handleDelete(s.id) : undefined}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-between text-sm text-muted">
         <span>Total {total} siswa</span>
@@ -218,17 +203,22 @@ export default function StudentsPage() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-overlay px-4 py-6">
+          <div className="flex min-h-full items-center justify-center">
           <form onSubmit={handleSubmit} className="w-full max-w-[520px] rounded-xl bg-canvas p-6">
             <h2 className="text-lg font-semibold text-ink">{editing ? "Edit" : "Tambah"} Siswa</h2>
             <div className="mt-4 space-y-4">
+              <PhotoUpload
+                value={form.photo_url}
+                onChange={(photo_url) => setForm({ ...form, photo_url })}
+              />
               <div>
                 <label className="block text-sm font-medium text-body">Nama</label>
                 <input
                   value={form.name ?? ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
-                  className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
+                  className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -237,7 +227,7 @@ export default function StudentsPage() {
                   <input
                     value={form.nis ?? ""}
                     onChange={(e) => setForm({ ...form, nis: e.target.value })}
-                    className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
+                    className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
                   />
                 </div>
                 <div>
@@ -245,18 +235,36 @@ export default function StudentsPage() {
                   <input
                     value={form.nisn ?? ""}
                     onChange={(e) => setForm({ ...form, nisn: e.target.value })}
-                    className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
+                    className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-body">Jenis Kelamin (L/P)</label>
-                <input
-                  value={form.gender ?? ""}
-                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                  className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
-                />
-              </div>
+              <fieldset>
+                <legend className="text-sm font-medium text-body">Jenis Kelamin</legend>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {[
+                    { value: "L", label: "Laki-laki" },
+                    { value: "P", label: "Perempuan" },
+                  ].map((option) => {
+                    const selected = form.gender === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setForm({ ...form, gender: option.value })}
+                        className={`h-[38px] rounded-md border text-sm font-medium ${
+                          selected
+                            ? "border-primary bg-primary text-white"
+                            : "border-hairline bg-canvas text-body hover:bg-surface-soft"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
               <div>
                 <label className="block text-sm font-medium text-body">Kelas</label>
                 <select
@@ -290,6 +298,7 @@ export default function StudentsPage() {
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
     </div>
