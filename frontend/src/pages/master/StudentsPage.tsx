@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import EntityCard from "../../components/EntityCard";
 import PhotoUpload from "../../components/PhotoUpload";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
 const PATH = "/students";
 
@@ -26,6 +27,7 @@ export default function StudentsPage() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<StudentRow | null>(null);
+  const [deleting, setDeleting] = useState<StudentRow | null>(null);
   const [form, setForm] = useState<Partial<StudentRow>>({});
   const [error, setError] = useState("");
 
@@ -96,8 +98,8 @@ export default function StudentsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Hapus siswa ini?")) return;
     await deleteItem(PATH, id);
+    setDeleting(null);
     load();
   }
 
@@ -173,7 +175,7 @@ export default function StudentsPage() {
                 { label: "Kelas", value: s.class?.name ?? "-" },
               ]}
               onEdit={can("master.update") ? () => openEdit(s) : undefined}
-              onDelete={can("master.delete") ? () => handleDelete(s.id) : undefined}
+              onDelete={can("master.delete") ? () => setDeleting(s) : undefined}
             />
           ))}
         </div>
@@ -201,6 +203,15 @@ export default function StudentsPage() {
           </button>
         </div>
       </div>
+
+      {deleting && (
+        <DeleteConfirmModal
+          title="Hapus Siswa?"
+          description={`Siswa ${deleting.name} akan dihapus permanen.`}
+          onCancel={() => setDeleting(null)}
+          onConfirm={() => handleDelete(deleting.id)}
+        />
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-overlay px-4 py-6">
