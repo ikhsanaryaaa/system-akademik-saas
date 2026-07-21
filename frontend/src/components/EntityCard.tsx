@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BriefcaseBusiness, GraduationCap, Hash, Mail, Phone, UserRound, type LucideIcon } from "lucide-react";
+import { BookOpen, BriefcaseBusiness, Clock4, GraduationCap, Hash, Mail, Phone, UserRound, type LucideIcon } from "lucide-react";
 import { photoSrc } from "../lib/master";
 import IconActions from "./IconActions";
 
@@ -12,6 +12,9 @@ const rowIcons: Record<string, LucideIcon> = {
   NIS: Hash,
   NISN: Hash,
   Kelas: GraduationCap,
+  "Mata Pelajaran": BookOpen,
+  Pengajar: UserRound,
+  Waktu: Clock4,
 };
 
 export default function EntityCard({

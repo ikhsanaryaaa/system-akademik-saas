@@ -13,6 +13,7 @@ import {
 } from "../../lib/master";
 import { useAuth } from "../../context/AuthContext";
 import EntityCard from "../../components/EntityCard";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
 const PATH = "/classes";
 
@@ -33,6 +34,7 @@ export default function ClassesPage() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ClassRow | null>(null);
+  const [deleting, setDeleting] = useState<ClassRow | null>(null);
   const [form, setForm] = useState<Partial<ClassRow>>({});
   const [error, setError] = useState("");
 
@@ -103,8 +105,8 @@ export default function ClassesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Hapus kelas ini?")) return;
     await deleteItem(PATH, id);
+    setDeleting(null);
     load();
   }
 
@@ -187,7 +189,7 @@ export default function ClassesPage() {
                 { label: "Wali Kelas", value: r.homeroom?.name ?? "-" },
               ]}
               onEdit={can("master.update") ? () => openEdit(r) : undefined}
-              onDelete={can("master.delete") ? () => handleDelete(r.id) : undefined}
+              onDelete={can("master.delete") ? () => setDeleting(r) : undefined}
             />
           ))}
         </div>
@@ -215,6 +217,15 @@ export default function ClassesPage() {
           </button>
         </div>
       </div>
+
+      {deleting && (
+        <DeleteConfirmModal
+          title="Hapus Kelas?"
+          description={`Kelas ${deleting.name} akan dihapus permanen.`}
+          onCancel={() => setDeleting(null)}
+          onConfirm={() => handleDelete(deleting.id)}
+        />
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">

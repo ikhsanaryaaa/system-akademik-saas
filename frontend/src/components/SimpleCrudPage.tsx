@@ -3,6 +3,7 @@ import { simpleList, createItem, updateItem, deleteItem } from "../lib/master";
 import { useAuth } from "../context/AuthContext";
 import IconActions from "./IconActions";
 import PhotoUpload from "./PhotoUpload";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 export interface FieldDef {
   key: string;
@@ -50,6 +51,7 @@ export default function SimpleCrudPage({
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+  const [deleting, setDeleting] = useState<Record<string, unknown> | null>(null);
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [error, setError] = useState("");
 
@@ -99,8 +101,8 @@ export default function SimpleCrudPage({
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Hapus data ini?")) return;
     await deleteItem(path, id);
+    setDeleting(null);
     await load();
     onChanged?.();
   }
@@ -147,7 +149,7 @@ export default function SimpleCrudPage({
               <div key={String(row.id)}>
                 {card.render(row, {
                   onEdit: can(`${permPrefix}.update`) ? () => openEdit(row) : undefined,
-                  onDelete: can(`${permPrefix}.delete`) ? () => handleDelete(String(row.id)) : undefined,
+                  onDelete: can(`${permPrefix}.delete`) ? () => setDeleting(row) : undefined,
                 })}
               </div>
             ))}
@@ -201,6 +203,15 @@ export default function SimpleCrudPage({
             </tbody>
           </table>
         </div>
+      )}
+
+      {deleting && (
+        <DeleteConfirmModal
+          title={`Hapus ${title}?`}
+          description={`Data ${String(deleting.name ?? deleting.code ?? "ini")} akan dihapus permanen.`}
+          onCancel={() => setDeleting(null)}
+          onConfirm={() => handleDelete(String(deleting.id))}
+        />
       )}
 
       {open && (

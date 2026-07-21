@@ -10,6 +10,8 @@ import { http, type ApiResponse } from "../../lib/http";
 import type { ClassRow } from "../../lib/master";
 import { dayNames, type Subject, type Teacher, type LessonSchedule } from "../../lib/curriculum";
 import { useAuth } from "../../context/AuthContext";
+import EntityCard from "../../components/EntityCard";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
 const PATH = "/lesson-schedules";
 
@@ -24,6 +26,7 @@ export default function LessonSchedulesPage() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LessonSchedule | null>(null);
+  const [deleting, setDeleting] = useState<LessonSchedule | null>(null);
   const [form, setForm] = useState<Partial<LessonSchedule>>({ day_of_week: 1 });
   const [error, setError] = useState("");
 
@@ -94,8 +97,8 @@ export default function LessonSchedulesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Hapus jadwal ini?")) return;
     await deleteItem(PATH, id);
+    setDeleting(null);
     load();
   }
 
@@ -128,65 +131,50 @@ export default function LessonSchedulesPage() {
         </select>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-              <th className="px-4 py-3">Hari</th>
-              <th className="px-4 py-3">Waktu</th>
-              <th className="px-4 py-3">Kelas</th>
-              <th className="px-4 py-3">Mata Pelajaran</th>
-              <th className="px-4 py-3">Pengajar</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                  Memuat...
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                  Belum ada jadwal.
-                </td>
-              </tr>
-            ) : (
-              rows.map((r) => (
-                <tr key={r.id} className="border-t border-hairline hover:bg-surface-soft">
-                  <td className="px-4 py-3 text-ink">{dayNames[r.day_of_week]}</td>
-                  <td className="px-4 py-3 font-mono">
-                    {r.start_time} - {r.end_time}
-                  </td>
-                  <td className="px-4 py-3">{r.class?.name ?? "-"}</td>
-                  <td className="px-4 py-3">{r.subject?.name ?? "-"}</td>
-                  <td className="px-4 py-3">{r.teacher?.name ?? "-"}</td>
-                  <td className="px-4 py-3 text-right">
-                    {can("curriculum.update") && (
-                      <button type="button" onClick={() => openEdit(r)} className="text-primary hover:underline">
-                        Edit
-                      </button>
-                    )}
-                    {can("curriculum.delete") && (
-                      <button type="button"
-                        onClick={() => handleDelete(r.id)}
-                        className="ml-3 text-danger hover:underline"
-                      >
-                        Hapus
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {loading ? (
+        <p className="mt-4 rounded-lg border border-hairline bg-canvas px-4 py-8 text-center text-sm text-muted">
+          Memuat...
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="mt-4 rounded-lg border border-hairline bg-canvas px-4 py-8 text-center text-sm text-muted">
+          Belum ada jadwal.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {rows.map((r) => (
+            <EntityCard
+              key={r.id}
+              hidePhoto
+              title={r.class?.name ?? "-"}
+              badge={
+                <span className="inline-flex rounded-full bg-primary-soft px-2 py-0.5 text-xs font-medium text-primary">
+                  {dayNames[r.day_of_week]}
+                </span>
+              }
+              rows={[
+                { label: "Waktu", value: `${r.start_time} - ${r.end_time}`, mono: true },
+                { label: "Mata Pelajaran", value: r.subject?.name ?? "-" },
+                { label: "Pengajar", value: r.teacher?.name ?? "-" },
+              ]}
+              onEdit={can("curriculum.update") ? () => openEdit(r) : undefined}
+              onDelete={can("curriculum.delete") ? () => setDeleting(r) : undefined}
+            />
+          ))}
+        </div>
+      )}
+
+      {deleting && (
+        <DeleteConfirmModal
+          title="Hapus Jadwal?"
+          description={`Jadwal ${deleting.subject?.name ?? "pelajaran"} di kelas ${deleting.class?.name ?? "ini"} akan dihapus permanen.`}
+          onCancel={() => setDeleting(null)}
+          onConfirm={() => handleDelete(deleting.id)}
+        />
+      )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-overlay px-4 py-6">
+          <div className="flex min-h-full items-center justify-center">
           <form onSubmit={handleSubmit} className="w-full max-w-[520px] rounded-xl bg-canvas p-6">
             <h2 className="text-lg font-semibold text-ink">{editing ? "Edit" : "Tambah"} Jadwal</h2>
             <div className="mt-4 space-y-4">
@@ -291,6 +279,7 @@ export default function LessonSchedulesPage() {
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
     </div>
