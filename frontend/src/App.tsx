@@ -17,6 +17,7 @@ import ClassesPage from "./pages/master/ClassesPage";
 import StudentsPage from "./pages/master/StudentsPage";
 import SubjectsPage from "./pages/curriculum/SubjectsPage";
 import ClassSubjectsPage from "./pages/curriculum/ClassSubjectsPage";
+import SubjectsMappingPage from "./pages/curriculum/SubjectsMappingPage";
 import LessonSchedulesPage from "./pages/curriculum/LessonSchedulesPage";
 import AcademicCalendarPage from "./pages/curriculum/AcademicCalendarPage";
 import StudentAttendancePage from "./pages/attendance/StudentAttendancePage";
@@ -223,6 +224,7 @@ export default function App() {
       <Route path="/master/classes" element={masterRoute(<ClassesPage />)} />
       <Route path="/master/students" element={masterRoute(<StudentsPage />)} />
 
+      <Route path="/curriculum/subjects-mapping" element={curriculumRoute(<SubjectsMappingPage />)} />
       <Route path="/curriculum/subjects" element={curriculumRoute(<SubjectsPage />)} />
       <Route path="/curriculum/class-subjects" element={curriculumRoute(<ClassSubjectsPage />)} />
       <Route path="/curriculum/schedules" element={curriculumRoute(<LessonSchedulesPage />)} />

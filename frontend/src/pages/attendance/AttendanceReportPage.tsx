@@ -3,7 +3,11 @@ import { http, type ApiResponse } from "../../lib/http";
 import { paginatedList, type ClassRow } from "../../lib/master";
 import {
   statusBadgeClass,
+  methodBadgeClass,
+  attendanceMethods,
   type StudentAttendanceReportRow,
+  type AttendanceMethod,
+  type AttendanceScope,
 } from "../../lib/attendance";
 
 function isoDate(v: string): string {
@@ -15,6 +19,8 @@ export default function AttendanceReportPage() {
   const [classId, setClassId] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [method, setMethod] = useState<AttendanceMethod | "">("");
+  const [scope, setScope] = useState<AttendanceScope | "">("");
   const [rows, setRows] = useState<StudentAttendanceReportRow[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,27 +28,29 @@ export default function AttendanceReportPage() {
     paginatedList<ClassRow>("/classes", { per_page: 100 }).then((res) => setClasses(res.items));
   }, []);
 
-  async function load() {
-    setLoading(true);
-    try {
-      const params: Record<string, string> = {};
-      if (classId) params.class_id = classId;
-      if (start) params.start = start;
-      if (end) params.end = end;
-      const res = await http.get<ApiResponse<StudentAttendanceReportRow[]>>(
-        "/attendance/students/report",
-        { params }
-      );
-      setRows(res.data.data ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setLoading(true);
+      try {
+        const params: Record<string, string> = {};
+        if (classId) params.class_id = classId;
+        if (start) params.start = start;
+        if (end) params.end = end;
+        if (method) params.method = method;
+        if (scope) params.scope = scope;
+        const res = await http.get<ApiResponse<StudentAttendanceReportRow[]>>(
+          "/attendance/records/report",
+          { params, signal: controller.signal }
+        );
+        if (!controller.signal.aborted) setRows(res.data.data ?? []);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, start, end]);
+    return () => controller.abort();
+  }, [classId, start, end, method, scope]);
 
   return (
     <div>
@@ -91,6 +99,25 @@ export default function AttendanceReportPage() {
             className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"
           />
         </div>
+        <div><label htmlFor="report-scope" className="block text-sm font-medium text-body">Scope</label><select id="report-scope" value={scope} onChange={(e) => setScope(e.target.value as AttendanceScope | "")} className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"><option value="">Semua Scope</option><option value="daily">Harian</option><option value="lesson">Jam Pelajaran</option></select></div>
+        <div>
+          <label htmlFor="report-method" className="block text-sm font-medium text-body">
+            Metode
+          </label>
+          <select
+            id="report-method"
+            value={method}
+            onChange={(e) => setMethod(e.target.value as AttendanceMethod | "")}
+            className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"
+          >
+            <option value="">Semua Metode</option>
+            {attendanceMethods.map((m) => (
+              <option key={m} value={m}>
+                {m.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-lg border border-hairline bg-canvas">
@@ -100,35 +127,49 @@ export default function AttendanceReportPage() {
               <th className="px-4 py-3">Tanggal</th>
               <th className="px-4 py-3">Siswa</th>
               <th className="px-4 py-3">Kelas</th>
+              <th className="px-4 py-3">Sesi</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Metode</th>
               <th className="px-4 py-3">Catatan</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted">
                   Memuat...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted">
                   Belum ada data absensi.
                 </td>
               </tr>
             ) : (
               rows.map((r) => (
                 <tr key={r.id} className="border-t border-hairline hover:bg-surface-soft">
-                  <td className="px-4 py-3 font-mono">{isoDate(r.date)}</td>
+                  <td className="px-4 py-3 font-mono">{isoDate(r.session?.date ?? r.date)}</td>
                   <td className="px-4 py-3 text-ink">{r.student?.name ?? "-"}</td>
-                  <td className="px-4 py-3">{r.class?.name ?? "-"}</td>
+                  <td className="px-4 py-3">{r.session?.class?.name ?? r.class?.name ?? "-"}</td>
+                  <td className="px-4 py-3 text-muted">{r.session?.scope === "lesson" ? `${r.session.subject?.name ?? "Jam Pelajaran"} · ${r.session.scheduled_start}-${r.session.scheduled_end}` : r.session?.name ?? r.session_name ?? "-"}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs capitalize ${statusBadgeClass[r.status]}`}
                     >
                       {r.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.method ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs uppercase ${methodBadgeClass[r.method]}`}
+                      >
+                        {r.method}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                   <td className="px-4 py-3 text-muted">{r.note || "-"}</td>
                 </tr>

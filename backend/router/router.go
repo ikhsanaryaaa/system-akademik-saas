@@ -26,7 +26,7 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.CORSAllowOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Auth-Transport"},
 		AllowCredentials: true,
 	}))
 
@@ -35,7 +35,7 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	jwtManager := appjwt.NewManager(cfg.JWTSecret, time.Duration(cfg.JWTTTLHours)*time.Hour)
 
 	healthHandler := handler.NewHealthHandler(db)
-	authHandler := handler.NewAuthHandler(db, jwtManager)
+	authHandler := handler.NewAuthHandler(db, jwtManager, cfg.AppMode == "release", cfg.JWTTTLHours*60*60)
 	userHandler := handler.NewUserHandler(db)
 	roleHandler := handler.NewRoleHandler(db)
 	academicYearHandler := handler.NewAcademicYearHandler(db)
@@ -55,6 +55,9 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	teacherAttendanceHandler := handler.NewTeacherAttendanceHandler(db)
 	studentAttendanceHandler := handler.NewStudentAttendanceHandler(db)
 	rfidTapHandler := handler.NewRfidTapHandler(db)
+	attendanceSessionHandler := handler.NewAttendanceSessionHandler(db)
+	attendanceRecordHandler := handler.NewAttendanceRecordHandler(db)
+	qrAttendanceHandler := handler.NewQrAttendanceHandler(db)
 	assessmentHandler := handler.NewAssessmentHandler(db)
 	assessmentScoreHandler := handler.NewAssessmentScoreHandler(db)
 	reportCardHandler := handler.NewReportCardHandler(db)
@@ -104,7 +107,7 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 
 		// Route yang butuh autentikasi.
 		auth := api.Group("")
-		auth.Use(middleware.Auth(jwtManager))
+		auth.Use(middleware.Auth(jwtManager, cfg.CORSAllowOrigins))
 		// AuditWrite mencatat seluruh aksi tulis (create, update, delete) yang
 		// berhasil pada route terautentikasi. Login dan logout dicatat terpisah
 		// di dalam AuthHandler karena login berada di luar group ini.
@@ -159,6 +162,22 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.GET("/attendance/students/roster", readAtt, studentAttendanceHandler.Roster)
 			auth.POST("/attendance/students", writeAtt, studentAttendanceHandler.SaveBulk)
 			auth.GET("/attendance/students/report", readAtt, studentAttendanceHandler.Report)
+
+			auth.GET("/attendance/sessions", readAtt, attendanceSessionHandler.List)
+			auth.POST("/attendance/sessions", manageAtt, attendanceSessionHandler.Create)
+			auth.GET("/attendance/sessions/:id", readAtt, attendanceSessionHandler.Get)
+			auth.POST("/attendance/sessions/:id/open", manageAtt, attendanceSessionHandler.Open)
+			auth.POST("/attendance/sessions/:id/override", manageAtt, attendanceSessionHandler.Override)
+			auth.POST("/attendance/sessions/lesson/teaching", writeAtt, attendanceSessionHandler.OpenTeaching)
+			auth.GET("/attendance/teaching/schedule", readAtt, attendanceSessionHandler.TeachingSchedule)
+			auth.POST("/attendance/sessions/:id/close", manageAtt, attendanceSessionHandler.Close)
+			auth.DELETE("/attendance/sessions/:id", manageAtt, attendanceSessionHandler.Delete)
+			auth.GET("/attendance/sessions/:id/roster", readAtt, attendanceRecordHandler.Roster)
+			auth.GET("/attendance/records", readAtt, attendanceRecordHandler.List)
+			auth.POST("/attendance/records/mark", writeAtt, attendanceRecordHandler.MarkBulk)
+			auth.GET("/attendance/records/report", readAtt, attendanceRecordHandler.Report)
+			auth.POST("/attendance/qr/generate", manageAtt, qrAttendanceHandler.GenerateToken)
+			auth.POST("/attendance/qr/scan", writeAtt, qrAttendanceHandler.ScanToken)
 
 			// Penilaian dan e-Raport.
 			readGrade := middleware.RequirePermission("grading.read")

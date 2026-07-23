@@ -163,19 +163,21 @@ function FormPanel({
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-body">Username</label>
+            <label htmlFor="login-username" className="block text-sm font-medium text-body">Username</label>
             <input
+              id="login-username"
               type="text"
               value={username}
               onChange={(e) => onUsername(e.target.value)}
               className="mt-1.5 h-[42px] w-full rounded-lg border border-hairline bg-canvas px-3.5 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/25"
               placeholder="Masukkan username"
-              autoFocus
             />
+
           </div>
           <div>
-            <label className="block text-sm font-medium text-body">Password</label>
+            <label htmlFor="login-password" className="block text-sm font-medium text-body">Password</label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => onPassword(e.target.value)}

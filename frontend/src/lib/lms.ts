@@ -1,7 +1,5 @@
 // Tipe dan konstanta modul Learning Management System (LMS).
 
-export const semesters = [1, 2];
-
 // Label status pengumpulan tugas untuk tampilan.
 export const submissionStatusLabel: Record<string, string> = {
   submitted: "Dikumpulkan",

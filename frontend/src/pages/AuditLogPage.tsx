@@ -140,6 +140,7 @@ function FilterBar({
       </div>
       <form onSubmit={onSearchSubmit}>
         <input
+          aria-label="Cari username"
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}

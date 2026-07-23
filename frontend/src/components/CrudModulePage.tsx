@@ -357,6 +357,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       return (
         <textarea
           id={id}
+          aria-label={f.label}
           value={String(value ?? "")}
           onChange={(e) => set(e.target.value)}
           required={f.required}
@@ -369,6 +370,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       return (
         <select
           id={id}
+          aria-label={f.label}
           value={value === true || value === "true" ? "true" : "false"}
           onChange={(e) => set(e.target.value === "true")}
           className={inputClass}
@@ -380,7 +382,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
     }
     if (f.type === "select") {
       return (
-        <select id={id} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
+        <select id={id} aria-label={f.label} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
           <option value="">Pilih</option>
           {(f.options ?? []).map((o) => (
             <option key={o} value={o}>
@@ -402,7 +404,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
                 ? teachers
                 : refData[f.key] ?? [];
       return (
-        <select id={id} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
+        <select id={id} aria-label={f.label} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
           <option value="">Pilih</option>
           {list.map((o) => (
             <option key={o.id} value={o.id}>

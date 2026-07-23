@@ -4,29 +4,18 @@ import axios from "axios";
 // baseURL memakai /api dan diteruskan ke backend lewat proxy Vite saat dev.
 export const http = axios.create({
   baseURL: "/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Sisipkan Authorization header dari token tersimpan.
-http.interceptors.request.use((config) => {
-  const token = localStorage.getItem("sim_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Bila token invalid atau kedaluwarsa, buang token dan arahkan ke login.
+// Bila session invalid atau kedaluwarsa, arahkan ke login.
 http.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("sim_token");
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
+    if (error.response?.status === 401 && window.location.pathname !== "/login") {
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }

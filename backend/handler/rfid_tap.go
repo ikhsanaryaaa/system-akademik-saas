@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -20,11 +21,10 @@ func NewRfidTapHandler(db *gorm.DB) *RfidTapHandler {
 }
 
 type rfidTapRequest struct {
-	UID string `json:"uid" binding:"required"`
+	UID       string     `json:"uid" binding:"required"`
+	SessionID *uuid.UUID `json:"session_id"`
 }
 
-// Tap menerima UID kartu dari perangkat pembaca, memetakan ke siswa atau guru,
-// lalu mencatat waktu masuk (tap pertama hari itu) atau keluar (tap berikutnya).
 func (h *RfidTapHandler) Tap(c *gin.Context) {
 	var req rfidTapRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -38,93 +38,144 @@ func (h *RfidTapHandler) Tap(c *gin.Context) {
 		return
 	}
 
+	var personID uuid.UUID
+	var sessionType, name string
+	var classID *uuid.UUID
+
+	switch {
+	case card.StudentID != nil:
+		var student model.Student
+		if err := h.db.First(&student, "id = ?", *card.StudentID).Error; err != nil {
+			response.Error(c, http.StatusNotFound, "Siswa tidak ditemukan", nil)
+			return
+		}
+		personID, sessionType, name, classID = student.ID, model.SessionTypeStudent, student.Name, student.ClassID
+	case card.TeacherID != nil:
+		var teacher model.Teacher
+		if err := h.db.First(&teacher, "id = ?", *card.TeacherID).Error; err != nil {
+			response.Error(c, http.StatusNotFound, "Pendidik tidak ditemukan", nil)
+			return
+		}
+		personID, sessionType, name = teacher.ID, model.SessionTypeTeacher, teacher.Name
+	default:
+		response.Error(c, http.StatusBadRequest, "Kartu tidak terkait siswa atau pendidik", nil)
+		return
+	}
+
 	now := time.Now()
-	date := dayStart(now)
+	var resultType, status string
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		var session model.AttendanceSession
 
-	if card.StudentID != nil {
-		h.tapStudent(c, *card.StudentID, date, now)
-		return
-	}
-	if card.TeacherID != nil {
-		h.tapTeacher(c, *card.TeacherID, date, now)
-		return
-	}
-	response.Error(c, http.StatusBadRequest, "Kartu tidak terkait siswa atau pendidik", nil)
-}
+		// Jika session_id diberikan, gunakan session tersebut.
+		if req.SessionID != nil {
+			if err := tx.First(&session, "id = ?", req.SessionID).Error; err != nil {
+				return errors.New("session tidak ditemukan")
+			}
+			// Validasi session type.
+			if session.SessionType != sessionType {
+				return errors.New("tipe session tidak sesuai dengan tipe person")
+			}
+			// Validasi student membership untuk student session.
+			if sessionType == model.SessionTypeStudent {
+				if session.ClassID == nil || classID == nil || *session.ClassID != *classID {
+					return errors.New("siswa bukan anggota kelas sesi ini")
+				}
+			}
+		} else {
+			// Fallback compatibility: pilih session berdasarkan tipe dan tanggal.
+			dateKey := dayStart(now)
+			if sessionType == model.SessionTypeStudent {
+				// Tanpa session_id, RFID hanya memilih sesi harian.
+				if classID == nil {
+					return errors.New("siswa tidak memiliki kelas")
+				}
+				// Cek apakah ada lebih dari satu session untuk kelas ini pada tanggal ini.
+				var count int64
+				tx.Model(&model.AttendanceSession{}).
+					Where("session_type = ? AND scope = ? AND class_id = ? AND date = ?", sessionType, model.AttendanceScopeDaily, classID, dateKey).
+					Count(&count)
+				if count > 1 {
+					return errors.New("lebih dari satu session aktif untuk kelas ini, harap tentukan session_id")
+				}
+				if err := tx.Where("session_type = ? AND scope = ? AND class_id = ? AND date = ?", sessionType, model.AttendanceScopeDaily, classID, dateKey).
+					FirstOrCreate(&session, model.AttendanceSession{
+						SessionType:   sessionType,
+						Scope:         model.AttendanceScopeDaily,
+						Date:          dateKey,
+						ClassID:       classID,
+						Name:          "RFID Auto",
+						Status:        model.SessionStatusOpen,
+						DefaultMethod: model.AttendanceMethodRFID,
+					}).Error; err != nil {
+					return err
+				}
+			} else {
+				// Untuk teacher, tetap global per tanggal.
+				if err := tx.Where("session_type = ? AND scope = ? AND date = ?", sessionType, model.AttendanceScopeDaily, dateKey).
+					FirstOrCreate(&session, model.AttendanceSession{
+						SessionType:   sessionType,
+						Scope:         model.AttendanceScopeDaily,
+						Date:          dateKey,
+						Status:        model.SessionStatusOpen,
+						DefaultMethod: model.AttendanceMethodRFID,
+					}).Error; err != nil {
+					return err
+				}
+			}
+		}
 
-// tapStudent mencatat masuk pada tap pertama, atau keluar pada tap berikutnya.
-func (h *RfidTapHandler) tapStudent(c *gin.Context, studentID uuid.UUID, date, now time.Time) {
-	var student model.Student
-	if err := h.db.First(&student, "id = ?", studentID).Error; err != nil {
-		response.Error(c, http.StatusNotFound, "Siswa tidak ditemukan", nil)
-		return
-	}
+		if session.Status == model.SessionStatusClosed {
+			return errAttendanceSessionClosed
+		}
+		if session.SessionType == model.SessionTypeStudent && session.Scope == model.AttendanceScopeLesson && session.OverrideBy == nil {
+			if session.ParentSessionID == nil {
+				return errors.New("Guru belum membuka sesi mengajar")
+			}
+			var parent model.AttendanceSession
+			if err := tx.First(&parent, "id = ? AND status = ?", session.ParentSessionID, model.SessionStatusOpen).Error; err != nil {
+				return errors.New("Guru belum membuka sesi mengajar")
+			}
+		}
+		if session.Status == model.SessionStatusDraft {
+			if err := tx.Model(&session).Update("status", model.SessionStatusOpen).Error; err != nil {
+				return err
+			}
+		}
 
-	var att model.StudentAttendance
-	err := h.db.Where("student_id = ? AND date = ?", studentID, date).First(&att).Error
-	if err == gorm.ErrRecordNotFound {
-		status := model.AttendancePresent
-		if isLate(h.db, now) {
-			status = model.AttendanceLate
+		var record model.AttendanceRecord
+		err := tx.Where("session_id = ? AND person_id = ?", session.ID, personID).First(&record).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			status = model.AttendancePresent
+			if isLate(tx, now) {
+				status = model.AttendanceLate
+			}
+			record = model.AttendanceRecord{
+				SessionID:   session.ID,
+				PersonID:    personID,
+				Status:      status,
+				Method:      model.AttendanceMethodRFID,
+				CheckInTime: &now,
+			}
+			resultType = "masuk"
+			return tx.Create(&record).Error
 		}
-		att = model.StudentAttendance{
-			StudentID:   studentID,
-			Date:        date,
-			ClassID:     student.ClassID,
-			Status:      status,
-			CheckInTime: &now,
+		if err != nil {
+			return err
 		}
-		if err := h.db.Create(&att).Error; err != nil {
-			response.Error(c, http.StatusInternalServerError, "Gagal mencatat kehadiran", nil)
-			return
-		}
-		response.OK(c, "Tap masuk tercatat", gin.H{"name": student.Name, "type": "masuk", "status": att.Status})
+		record.CheckOutTime = &now
+		status, resultType = record.Status, "keluar"
+		return tx.Save(&record).Error
+	})
+	if errors.Is(err, errAttendanceSessionClosed) {
+		response.Error(c, http.StatusBadRequest, "Sesi absensi sudah ditutup", nil)
 		return
 	}
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Gagal mengambil absensi", nil)
+		response.Error(c, http.StatusInternalServerError, "Gagal mencatat kehadiran: "+err.Error(), nil)
 		return
 	}
-
-	att.CheckOutTime = &now
-	h.db.Save(&att)
-	response.OK(c, "Tap keluar tercatat", gin.H{"name": student.Name, "type": "keluar", "status": att.Status})
+	response.OK(c, "Tap tercatat", gin.H{"name": name, "type": resultType, "status": status})
 }
 
-// tapTeacher mencatat masuk pada tap pertama, atau keluar pada tap berikutnya.
-func (h *RfidTapHandler) tapTeacher(c *gin.Context, teacherID uuid.UUID, date, now time.Time) {
-	var teacher model.Teacher
-	if err := h.db.First(&teacher, "id = ?", teacherID).Error; err != nil {
-		response.Error(c, http.StatusNotFound, "Pendidik tidak ditemukan", nil)
-		return
-	}
-
-	var att model.TeacherAttendance
-	err := h.db.Where("teacher_id = ? AND date = ?", teacherID, date).First(&att).Error
-	if err == gorm.ErrRecordNotFound {
-		status := model.AttendancePresent
-		if isLate(h.db, now) {
-			status = model.AttendanceLate
-		}
-		att = model.TeacherAttendance{
-			TeacherID:   teacherID,
-			Date:        date,
-			Status:      status,
-			CheckInTime: &now,
-		}
-		if err := h.db.Create(&att).Error; err != nil {
-			response.Error(c, http.StatusInternalServerError, "Gagal mencatat kehadiran", nil)
-			return
-		}
-		response.OK(c, "Tap masuk tercatat", gin.H{"name": teacher.Name, "type": "masuk", "status": att.Status})
-		return
-	}
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Gagal mengambil absensi", nil)
-		return
-	}
-
-	att.CheckOutTime = &now
-	h.db.Save(&att)
-	response.OK(c, "Tap keluar tercatat", gin.H{"name": teacher.Name, "type": "keluar", "status": att.Status})
-}
+var errAttendanceSessionClosed = errors.New("attendance session closed")

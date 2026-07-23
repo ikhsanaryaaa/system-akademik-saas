@@ -209,6 +209,7 @@ export default function ClassesPage() {
             {page} / {totalPages}
           </span>
           <button
+            type="button"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
             className="rounded-md border border-hairline px-3 py-1 disabled:opacity-50"
@@ -233,8 +234,9 @@ export default function ClassesPage() {
             <h2 className="text-lg font-semibold text-ink">{editing ? "Edit" : "Tambah"} Kelas</h2>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-body">Nama</label>
+                <label htmlFor="class-name" className="block text-sm font-medium text-body">Nama</label>
                 <input
+                  id="class-name"
                   value={form.name ?? ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
@@ -242,8 +244,9 @@ export default function ClassesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Tingkatan</label>
+                <label htmlFor="class-grade" className="block text-sm font-medium text-body">Tingkatan</label>
                 <select
+                  id="class-grade"
                   value={form.grade_level_id ?? ""}
                   onChange={(e) => setForm({ ...form, grade_level_id: e.target.value })}
                   required
@@ -258,8 +261,9 @@ export default function ClassesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Jurusan</label>
+                <label htmlFor="class-major" className="block text-sm font-medium text-body">Jurusan</label>
                 <select
+                  id="class-major"
                   value={form.major_id ?? ""}
                   onChange={(e) => setForm({ ...form, major_id: e.target.value })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
@@ -273,8 +277,9 @@ export default function ClassesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Tahun Ajaran</label>
+                <label htmlFor="class-year" className="block text-sm font-medium text-body">Tahun Ajaran</label>
                 <select
+                  id="class-year"
                   value={form.academic_year_id ?? ""}
                   onChange={(e) => setForm({ ...form, academic_year_id: e.target.value })}
                   required
@@ -289,8 +294,9 @@ export default function ClassesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Wali Kelas</label>
+                <label htmlFor="class-homeroom" className="block text-sm font-medium text-body">Wali Kelas</label>
                 <select
+                  id="class-homeroom"
                   value={form.homeroom_id ?? ""}
                   onChange={(e) => setForm({ ...form, homeroom_id: e.target.value })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"

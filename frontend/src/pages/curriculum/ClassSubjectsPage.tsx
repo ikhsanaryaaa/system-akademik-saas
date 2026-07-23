@@ -105,7 +105,9 @@ export default function ClassSubjectsPage() {
       </div>
 
       <div className="mt-4 rounded-lg border border-hairline bg-canvas p-4">
+        <label htmlFor="class-subject-filter" className="block text-sm font-medium text-body">Kelas</label>
         <select
+          id="class-subject-filter"
           value={filterClass}
           onChange={(e) => setFilterClass(e.target.value)}
           className="h-[38px] rounded-md border border-hairline px-3 text-sm"
@@ -163,8 +165,9 @@ export default function ClassSubjectsPage() {
             </h2>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-body">Kelas</label>
+                <label htmlFor="class-subject-class" className="block text-sm font-medium text-body">Kelas</label>
                 <select
+                  id="class-subject-class"
                   value={form.class_id ?? ""}
                   onChange={(e) => setForm({ ...form, class_id: e.target.value })}
                   required
@@ -179,8 +182,9 @@ export default function ClassSubjectsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Mata Pelajaran</label>
+                <label htmlFor="class-subject-subject" className="block text-sm font-medium text-body">Mata Pelajaran</label>
                 <select
+                  id="class-subject-subject"
                   value={form.subject_id ?? ""}
                   onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
                   required
@@ -195,8 +199,9 @@ export default function ClassSubjectsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-body">Pengajar</label>
+                <label htmlFor="class-subject-teacher" className="block text-sm font-medium text-body">Pengajar</label>
                 <select
+                  id="class-subject-teacher"
                   value={form.teacher_id ?? ""}
                   onChange={(e) => setForm({ ...form, teacher_id: e.target.value })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"

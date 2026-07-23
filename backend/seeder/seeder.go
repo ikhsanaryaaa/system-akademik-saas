@@ -22,6 +22,12 @@ func Run(db *gorm.DB) error {
 	if err := seedAdministrator(db); err != nil {
 		return err
 	}
+	if os.Getenv("SEED_DUMMY") == "true" {
+		if err := seedDummy(db); err != nil {
+			return err
+		}
+		log.Println("seeder: data dummy akademik tersedia")
+	}
 	return nil
 }
 

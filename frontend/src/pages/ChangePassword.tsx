@@ -54,6 +54,7 @@ export default function ChangePasswordPage() {
         </div>
 
         <PasswordField
+          id="old-password"
           label="Password Lama"
           value={oldPassword}
           onChange={setOldPassword}
@@ -61,6 +62,7 @@ export default function ChangePasswordPage() {
           onToggle={() => setShowOld((v) => !v)}
         />
         <PasswordField
+          id="new-password"
           label="Password Baru"
           value={newPassword}
           onChange={setNewPassword}
@@ -96,6 +98,7 @@ export default function ChangePasswordPage() {
 
 // PasswordField adalah input password dengan tombol tampil/sembunyikan.
 function PasswordField({
+  id,
   label,
   value,
   onChange,
@@ -103,6 +106,7 @@ function PasswordField({
   onToggle,
   minLength,
 }: {
+  id: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
@@ -112,9 +116,10 @@ function PasswordField({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-body">{label}</label>
+      <label htmlFor={id} className="block text-sm font-medium text-body">{label}</label>
       <div className="relative mt-1">
         <input
+          id={id}
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
