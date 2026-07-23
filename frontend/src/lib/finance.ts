@@ -1,7 +1,5 @@
 // Tipe dan konstanta modul Keuangan.
 
-export const invoiceStatuses = ["unpaid", "partial", "paid"];
-
 // Label status tagihan untuk tampilan.
 export const invoiceStatusLabel: Record<string, string> = {
   unpaid: "Belum Bayar",

@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import {
-  Users,
-  GraduationCap,
-  School,
+  UserRound,
+  Presentation,
+  PanelsTopLeft,
   ClipboardCheck,
   Wallet,
   Activity,
   ServerCog,
-  CalendarDays,
+  CalendarRange,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { loadDashboard, type DashboardData } from "../lib/dashboard";
@@ -65,33 +65,40 @@ function CompactStats({
   activeYear?: { name: string; is_active: boolean };
 }) {
   const stats = [
-    { label: "Siswa", value: nfmt(data?.totalStudents ?? null), detail: "terdaftar", icon: GraduationCap },
-    { label: "Guru", value: nfmt(data?.totalTeachers ?? null), detail: "pendidik", icon: Users },
-    { label: "Kelas", value: nfmt(data?.totalClasses ?? null), detail: "rombongan belajar", icon: School },
+    { label: "Siswa", value: nfmt(data?.totalStudents ?? null), detail: "terdaftar", icon: UserRound, accent: "bg-primary-soft text-primary" },
+    { label: "Guru", value: nfmt(data?.totalTeachers ?? null), detail: "pendidik", icon: Presentation, accent: "bg-success-soft text-success" },
+    { label: "Kelas", value: nfmt(data?.totalClasses ?? null), detail: "rombongan belajar", icon: PanelsTopLeft, accent: "bg-warning-soft text-warning" },
     {
       label: "Tahun Ajaran",
       value: activeYear?.name ?? "-",
       detail: activeYear?.is_active ? "aktif" : "belum aktif",
-      icon: CalendarDays,
+      icon: CalendarRange,
+      accent: "bg-primary-soft text-primary",
     },
   ];
 
   return (
-    <div className="mt-6 grid grid-cols-1 overflow-hidden rounded-lg border border-hairline bg-canvas shadow-sm sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-hairline">
+    <section className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Ringkasan sekolah">
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <div key={stat.label} className="flex items-center gap-4 border-b border-hairline px-5 py-4 last:border-b-0 sm:border-b-0">
-            <Icon className="h-5 w-5 shrink-0 text-muted" />
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted">{stat.label}</p>
-              <p className="mt-0.5 font-mono text-2xl font-semibold text-ink">{loading ? "…" : stat.value}</p>
-              <p className="text-xs text-muted">{stat.detail}</p>
+          <article key={stat.label} className="relative overflow-hidden rounded-lg border border-hairline bg-canvas p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted">{stat.label}</p>
+                <p className="mt-2 truncate font-mono text-2xl font-semibold tracking-tight text-ink">
+                  {loading ? "…" : stat.value}
+                </p>
+                <p className="mt-0.5 text-xs text-muted">{stat.detail}</p>
+              </div>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${stat.accent}`}>
+                <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              </span>
             </div>
-          </div>
+          </article>
         );
       })}
-    </div>
+    </section>
   );
 }
 

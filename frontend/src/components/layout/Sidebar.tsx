@@ -8,7 +8,6 @@ import {
   Users,
   GraduationCap,
   BookOpen,
-  Network,
   Clock4,
   CalendarDays,
   ClipboardCheck,
@@ -45,7 +44,6 @@ import {
   KeyRound,
   ScrollText,
   ChevronDown,
-  ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   Database,
@@ -98,8 +96,7 @@ const groups: MenuGroup[] = [
     label: "Kurikulum",
     icon: BookOpen,
     items: [
-      { label: "Mata Pelajaran", to: "/curriculum/subjects", icon: BookOpen, permission: "curriculum.read" },
-      { label: "Pemetaan Kelas", to: "/curriculum/class-subjects", icon: Network, permission: "curriculum.read" },
+      { label: "Mata Pelajaran & Pemetaan", to: "/curriculum/subjects-mapping", icon: BookOpen, permission: "curriculum.read" },
       { label: "Jadwal Pelajaran", to: "/curriculum/schedules", icon: Clock4, permission: "curriculum.read" },
       { label: "Kalender Akademik", to: "/curriculum/calendar", icon: CalendarDays, permission: "curriculum.read" },
     ],
@@ -389,11 +386,11 @@ function SidebarNav({ onNavigate, collapsed = false }: { onNavigate?: () => void
               {GroupIcon && <GroupIcon className="h-4 w-4 shrink-0" strokeWidth={2} />}
               <span className="truncate">{group.label}</span>
               <m.span
-                className="ml-auto flex shrink-0"
+                className="ml-auto flex shrink-0 text-muted/70"
                 animate={{ rotate: isOpen ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
               >
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.75} />
               </m.span>
             </button>
             {/* Buka tutup dianimasikan lewat grid-template-rows (0fr ke 1fr),
@@ -564,8 +561,7 @@ function SidebarLink({
   );
 }
 
-// SidebarSubLink adalah sub-item dalam grup. Chevron kanan muncul saat item
-// aktif atau di-hover, mengikuti pola pada referensi.
+// SidebarSubLink adalah sub-item sederhana tanpa indikator panah.
 function SidebarSubLink({ item, onNavigate }: { item: MenuItem; onNavigate?: () => void }) {
   return (
     <NavLink
@@ -573,23 +569,14 @@ function SidebarSubLink({ item, onNavigate }: { item: MenuItem; onNavigate?: () 
       end={item.to === "/"}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `group flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
+        `block truncate rounded-md px-3 py-2 text-sm transition-colors ${
           isActive
             ? "bg-primary-soft font-semibold text-primary"
             : "text-muted hover:bg-primary-soft hover:text-primary"
         }`
       }
     >
-      {({ isActive }) => (
-        <>
-          <span className="truncate">{item.label}</span>
-          <ChevronRight
-            className={`h-4 w-4 shrink-0 transition-opacity ${
-              isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
-            }`}
-          />
-        </>
-      )}
+      {item.label}
     </NavLink>
   );
 }

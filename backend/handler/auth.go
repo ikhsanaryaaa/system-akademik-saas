@@ -15,12 +15,14 @@ import (
 )
 
 type AuthHandler struct {
-	db  *gorm.DB
-	jwt *appjwt.Manager
+	db           *gorm.DB
+	jwt          *appjwt.Manager
+	cookieSecure bool
+	cookieMaxAge int
 }
 
-func NewAuthHandler(db *gorm.DB, jwt *appjwt.Manager) *AuthHandler {
-	return &AuthHandler{db: db, jwt: jwt}
+func NewAuthHandler(db *gorm.DB, jwt *appjwt.Manager, cookieSecure bool, cookieMaxAge int) *AuthHandler {
+	return &AuthHandler{db: db, jwt: jwt, cookieSecure: cookieSecure, cookieMaxAge: cookieMaxAge}
 }
 
 type loginRequest struct {
@@ -69,18 +71,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	h.recordAudit(c, &user.ID, user.Username, "login")
 
-	response.OK(c, "Login berhasil", gin.H{
-		"token": token,
+	data := gin.H{
 		"user": gin.H{
 			"id":          user.ID,
 			"name":        user.Name,
 			"username":    user.Username,
 			"permissions": user.PermissionKeys(),
 		},
-	})
+	}
+	if c.GetHeader("X-Auth-Transport") == "cookie" {
+		h.setSessionCookie(c, token, h.cookieMaxAge)
+	} else {
+		data["token"] = token
+	}
+	response.OK(c, "Login berhasil", data)
 }
 
-// Logout bersifat stateless pada sisi server; client cukup membuang token.
+// Logout menghapus cookie web. Bearer client tetap membuang token sendiri.
 func (h *AuthHandler) Logout(c *gin.Context) {
 	if raw, exists := c.Get(middleware.CtxUserID); exists {
 		if id, ok := raw.(uuid.UUID); ok {
@@ -89,7 +96,13 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 			h.recordAudit(c, &id, name, "logout")
 		}
 	}
+	h.setSessionCookie(c, "", -1)
 	response.OK(c, "Logout berhasil", nil)
+}
+
+func (h *AuthHandler) setSessionCookie(c *gin.Context, value string, maxAge int) {
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie(middleware.AuthCookieName, value, maxAge, "/api", "", h.cookieSecure, true)
 }
 
 // recordAudit mencatat aktivitas autentikasi (login, logout) ke tabel audit

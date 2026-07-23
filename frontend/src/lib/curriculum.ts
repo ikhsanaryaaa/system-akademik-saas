@@ -1,10 +1,13 @@
 import type { ClassRow, Major } from "./master";
 
 // Tipe entitas kurikulum.
+export type SubjectCategory = "wajib" | "peminatan" | "mulok";
+
 export interface Subject {
   id: string;
   name: string;
   code: string;
+  category: SubjectCategory;
 }
 
 export interface Teacher {

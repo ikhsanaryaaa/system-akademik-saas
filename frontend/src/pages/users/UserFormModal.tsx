@@ -23,9 +23,10 @@ export default function UserFormModal({
   const [username, setUsername] = useState(user?.username ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [password, setPassword] = useState("");
-  const [roleIds, setRoleIds] = useState<string[]>((user?.roles ?? []).map((r) => r.id));
+  const [roleIds, setRoleIds] = useState<string[]>(() => (user?.roles ?? []).map((r) => r.id));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const selectedRoles = new Set(roleIds);
 
   useEffect(() => {
     http.get<ApiResponse<Role[]>>("/roles").then((res) => setRoles(res.data.data ?? []));
@@ -60,8 +61,9 @@ export default function UserFormModal({
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-body">Nama</label>
+            <label htmlFor="user-name" className="block text-sm font-medium text-body">Nama</label>
             <input
+              id="user-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary"
@@ -69,8 +71,9 @@ export default function UserFormModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-body">Username</label>
+            <label htmlFor="user-username" className="block text-sm font-medium text-body">Username</label>
             <input
+              id="user-username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={isEdit}
@@ -79,8 +82,9 @@ export default function UserFormModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-body">Email</label>
+            <label htmlFor="user-email" className="block text-sm font-medium text-body">Email</label>
             <input
+              id="user-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -89,8 +93,9 @@ export default function UserFormModal({
           </div>
           {!isEdit && (
             <div>
-              <label className="block text-sm font-medium text-body">Password</label>
+              <label htmlFor="user-password" className="block text-sm font-medium text-body">Password</label>
               <input
+                id="user-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -100,21 +105,21 @@ export default function UserFormModal({
               />
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-body">Role</label>
+          <fieldset>
+            <legend className="block text-sm font-medium text-body">Role</legend>
             <div className="mt-1 max-h-40 overflow-auto rounded-md border border-hairline p-2">
               {roles.map((r) => (
                 <label key={r.id} className="flex items-center gap-2 py-1 text-sm">
                   <input
                     type="checkbox"
-                    checked={roleIds.includes(r.id)}
+                    checked={selectedRoles.has(r.id)}
                     onChange={() => toggleRole(r.id)}
                   />
                   {r.name}
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 

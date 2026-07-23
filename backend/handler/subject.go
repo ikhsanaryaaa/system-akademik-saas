@@ -19,8 +19,9 @@ func NewSubjectHandler(db *gorm.DB) *SubjectHandler {
 }
 
 type subjectRequest struct {
-	Name string `json:"name" binding:"required"`
-	Code string `json:"code" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Code     string `json:"code" binding:"required"`
+	Category string `json:"category" binding:"required,oneof=wajib peminatan mulok"`
 }
 
 func (h *SubjectHandler) List(c *gin.Context) {
@@ -38,7 +39,7 @@ func (h *SubjectHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
-	item := model.Subject{Name: req.Name, Code: req.Code}
+	item := model.Subject{Name: req.Name, Code: req.Code, Category: req.Category}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan mata pelajaran, pastikan kode unik", nil)
 		return
@@ -64,6 +65,7 @@ func (h *SubjectHandler) Update(c *gin.Context) {
 	}
 	item.Name = req.Name
 	item.Code = req.Code
+	item.Category = req.Category
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan mata pelajaran", nil)
 		return

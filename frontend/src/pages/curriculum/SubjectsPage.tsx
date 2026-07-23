@@ -1,4 +1,3 @@
-import EntityCard from "../../components/EntityCard";
 import SimpleCrudPage from "../../components/SimpleCrudPage";
 
 export default function SubjectsPage() {
@@ -7,22 +6,32 @@ export default function SubjectsPage() {
       title="Mata Pelajaran"
       path="/subjects"
       permPrefix="curriculum"
-      card={{
-        render: (row, actions) => (
-          <EntityCard
-            hidePhoto
-            title={String(row.code ?? "-")}
-            fallbackTitle={String(row.name ?? "")}
-            titleBadge
-            rows={[{ label: "Nama", value: String(row.name ?? "-") }]}
-            onEdit={actions.onEdit}
-            onDelete={actions.onDelete}
-          />
-        ),
-      }}
+      columns={[
+        { key: "name", label: "Nama" },
+        { key: "code", label: "Kode" },
+        {
+          key: "category",
+          label: "Kategori",
+          render: (row) =>
+            ({ wajib: "Wajib", peminatan: "Peminatan", mulok: "Mulok" })[
+              String(row.category)
+            ] ?? "-",
+        },
+      ]}
       fields={[
         { key: "name", label: "Nama", required: true },
         { key: "code", label: "Kode", required: true },
+        {
+          key: "category",
+          label: "Kategori",
+          type: "select",
+          required: true,
+          options: [
+            { value: "wajib", label: "Wajib" },
+            { value: "peminatan", label: "Peminatan" },
+            { value: "mulok", label: "Mulok" },
+          ],
+        },
       ]}
     />
   );

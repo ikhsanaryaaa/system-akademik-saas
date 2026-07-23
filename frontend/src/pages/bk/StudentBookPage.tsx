@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { http, type ApiResponse } from "../../lib/http";
 import { paginatedList, type StudentRow } from "../../lib/master";
 import type { StudentBook } from "../../lib/bk";
@@ -9,22 +9,34 @@ export default function StudentBookPage() {
   const [studentId, setStudentId] = useState("");
   const [book, setBook] = useState<StudentBook | null>(null);
   const [loading, setLoading] = useState(false);
+  const requestRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     paginatedList<StudentRow>("/students", { per_page: 100 }).then((res) => setStudents(res.items));
+    return () => requestRef.current?.abort();
   }, []);
 
-  useEffect(() => {
-    if (!studentId) {
-      setBook(null);
+  async function selectStudent(id: string) {
+    requestRef.current?.abort();
+    setStudentId(id);
+    setBook(null);
+    if (!id) {
+      setLoading(false);
       return;
     }
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
-    http
-      .get<ApiResponse<StudentBook>>("/student-book", { params: { student_id: studentId } })
-      .then((res) => setBook(res.data.data ?? null))
-      .finally(() => setLoading(false));
-  }, [studentId]);
+    try {
+      const res = await http.get<ApiResponse<StudentBook>>("/student-book", {
+        params: { student_id: id },
+        signal: controller.signal,
+      });
+      if (!controller.signal.aborted) setBook(res.data.data ?? null);
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }
 
   return (
     <div>
@@ -38,7 +50,7 @@ export default function StudentBookPage() {
           <select
             id="sb-student"
             value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
+            onChange={(e) => selectStudent(e.target.value)}
             className="mt-1 h-[38px] rounded-md border border-hairline px-3 text-sm"
           >
             <option value="">Pilih siswa</option>

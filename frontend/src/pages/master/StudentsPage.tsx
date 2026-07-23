@@ -195,6 +195,7 @@ export default function StudentsPage() {
             {page} / {totalPages}
           </span>
           <button
+            type="button"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
             className="rounded-md border border-hairline px-3 py-1 disabled:opacity-50"
@@ -224,8 +225,9 @@ export default function StudentsPage() {
                 onChange={(photo_url) => setForm({ ...form, photo_url })}
               />
               <div>
-                <label className="block text-sm font-medium text-body">Nama</label>
+                <label htmlFor="student-name" className="block text-sm font-medium text-body">Nama</label>
                 <input
+                  id="student-name"
                   value={form.name ?? ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
@@ -234,16 +236,18 @@ export default function StudentsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-body">NIS</label>
+                  <label htmlFor="student-nis" className="block text-sm font-medium text-body">NIS</label>
                   <input
+                    id="student-nis"
                     value={form.nis ?? ""}
                     onChange={(e) => setForm({ ...form, nis: e.target.value })}
                     className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-body">NISN</label>
+                  <label htmlFor="student-nisn" className="block text-sm font-medium text-body">NISN</label>
                   <input
+                    id="student-nisn"
                     value={form.nisn ?? ""}
                     onChange={(e) => setForm({ ...form, nisn: e.target.value })}
                     className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
@@ -277,8 +281,9 @@ export default function StudentsPage() {
                 </div>
               </fieldset>
               <div>
-                <label className="block text-sm font-medium text-body">Kelas</label>
+                <label htmlFor="student-class" className="block text-sm font-medium text-body">Kelas</label>
                 <select
+                  id="student-class"
                   value={form.class_id ?? ""}
                   onChange={(e) => setForm({ ...form, class_id: e.target.value })}
                   className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"

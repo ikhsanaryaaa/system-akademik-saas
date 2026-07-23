@@ -8,7 +8,8 @@ import DeleteConfirmModal from "./DeleteConfirmModal";
 export interface FieldDef {
   key: string;
   label: string;
-  type?: "text" | "number" | "email" | "checkbox" | "photo" | "gender";
+  type?: "text" | "number" | "email" | "checkbox" | "photo" | "gender" | "select";
+  options?: Array<{ value: string; label: string }>;
   required?: boolean;
 }
 
@@ -240,6 +241,24 @@ export default function SimpleCrudPage({
                         />
                         {f.label}
                       </label>
+                    ) : f.type === "select" ? (
+                      <>
+                        <label htmlFor={`field-${f.key}`} className="block text-sm font-medium text-body">{f.label}</label>
+                        <select
+                          id={`field-${f.key}`}
+                          value={String(form[f.key] ?? "")}
+                          required={f.required}
+                          onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                          className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
+                        >
+                          <option value="">Pilih {f.label}</option>
+                          {(f.options ?? []).map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </>
                     ) : f.type === "gender" ? (
                       <fieldset>
                         <legend className="text-sm font-medium text-body">{f.label}</legend>
@@ -269,8 +288,9 @@ export default function SimpleCrudPage({
                       </fieldset>
                     ) : (
                       <>
-                        <label className="block text-sm font-medium text-body">{f.label}</label>
+                        <label htmlFor={`field-${f.key}`} className="block text-sm font-medium text-body">{f.label}</label>
                         <input
+                          id={`field-${f.key}`}
                           type={f.type ?? "text"}
                           value={String(form[f.key] ?? "")}
                           required={f.required}
