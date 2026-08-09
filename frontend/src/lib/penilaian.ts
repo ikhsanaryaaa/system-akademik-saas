@@ -173,6 +173,68 @@ export async function bukaKunciNilai(rencanaID: string): Promise<void> {
   await http.delete(`/penilaian/rencana/${rencanaID}/kunci`);
 }
 
+export interface BarisGagalImpor {
+  baris: number;
+  nis: string;
+  alasan: string;
+}
+
+export interface HasilImpor {
+  tersimpan: number;
+  siswa_diubah: number;
+  baris_gagal: BarisGagalImpor[];
+}
+
+export interface MapelRaport {
+  mata_pelajaran: string;
+  pengetahuan: number;
+  keterampilan: number;
+  deskripsi: string;
+}
+
+export interface Raport {
+  siswa: { id: string; nama: string; nis: string; nisn: string; kelas: string };
+  tahun_ajaran: string;
+  semester: number;
+  mata_pelajaran: MapelRaport[];
+  rata_rata: number;
+}
+
+// unduhTemplate mengambil file Excel lalu memicu unduhan di browser.
+export async function unduhTemplate(rencanaID: string): Promise<void> {
+  const res = await http.get(`/penilaian/rencana/${rencanaID}/template`, {
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(res.data as Blob);
+  const tautan = document.createElement("a");
+  tautan.href = url;
+  tautan.download = `template-nilai-${rencanaID.slice(0, 8)}.xlsx`;
+  tautan.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function imporNilai(rencanaID: string, berkas: File): Promise<HasilImpor> {
+  const form = new FormData();
+  form.append("file", berkas);
+  const res = await http.post<ApiResponse<HasilImpor>>(
+    `/penilaian/rencana/${rencanaID}/impor`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return res.data.data as HasilImpor;
+}
+
+export async function getRaport(
+  siswaID: string,
+  tahunAjaranID: string,
+  semester: number
+): Promise<Raport> {
+  const res = await http.get<ApiResponse<Raport>>(`/penilaian/siswa/${siswaID}/raport`, {
+    params: { tahun_ajaran_id: tahunAjaranID, semester },
+  });
+  return res.data.data as Raport;
+}
+
 // totalBobot menjumlahkan bobot komponen yang berbobot lebih dari nol.
 // Dipakai indikator live pada tab Rencana, dan harus 100 supaya bisa disimpan.
 export function totalBobot(komponen: Komponen[]): number {

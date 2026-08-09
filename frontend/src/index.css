@@ -221,3 +221,38 @@ select option {
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-muted);
 }
+
+/* Aturan cetak untuk halaman raport. Warna dipaksa hitam putih supaya dark mode
+   tidak ikut tercetak, dan baris tabel tidak dipotong antar halaman. */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* .dark disebut eksplisit supaya override ini tidak bergantung urutan sumber,
+     karena .dark dan :root punya spesifisitas yang sama. */
+  :root,
+  .dark {
+    --color-canvas: #ffffff;
+    --color-ink: #000000;
+    --color-body: #000000;
+    --color-muted: #333333;
+    --color-hairline: #999999;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  tr,
+  thead,
+  tfoot {
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+}

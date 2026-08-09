@@ -167,41 +167,11 @@ func (h *NilaiSiswaHandler) SimpanBatch(c *gin.Context) {
 
 	err := h.db.Transaction(func(tx *gorm.DB) error {
 		for _, e := range req.Entries {
-			var lama model.NilaiSiswa
-			adaLama := tx.First(&lama, "komponen_id = ? AND siswa_id = ?", e.KomponenID, e.SiswaID).Error == nil
-
-			if adaLama {
-				updates := map[string]any{"nilai": e.Nilai, "catatan": e.Catatan}
-				if err := tx.Model(&model.NilaiSiswa{}).Where("id = ?", lama.ID).Updates(updates).Error; err != nil {
-					return err
-				}
-			} else {
-				baris := model.NilaiSiswa{
-					KomponenID: e.KomponenID,
-					SiswaID:    e.SiswaID,
-					Nilai:      e.Nilai,
-					Catatan:    e.Catatan,
-				}
-				if err := tx.Create(&baris).Error; err != nil {
-					return err
-				}
-			}
-
-			audit := model.AuditNilai{
-				KomponenID: e.KomponenID,
-				SiswaID:    e.SiswaID,
-				NilaiBaru:  e.Nilai,
-			}
-			if adaLama {
-				audit.NilaiLama = lama.Nilai
-			}
-			if pelaku != nil {
-				audit.UserID = *pelaku
-			}
-			if err := tx.Create(&audit).Error; err != nil {
+			// Logika simpan dan audit dipakai bersama dengan impor Excel,
+			// lihat simpanSatuNilai di assessment_excel.go.
+			if err := simpanSatuNilai(tx, e, pelaku); err != nil {
 				return err
 			}
-
 			siswaTersentuh[e.SiswaID] = true
 		}
 

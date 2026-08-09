@@ -228,7 +228,9 @@ export default function PenilaianPage() {
             />
           )}
           {tab === "input" && <InputNilaiTab rencana={rencana} />}
-          {tab === "rekap" && <RekapTab rencana={rencana} onBerubah={muatRencana} />}
+          {tab === "rekap" && (
+            <RekapTab konteks={konteksTerpilih} rencana={rencana} onBerubah={muatRencana} />
+          )}
           {tab === "analisis" && <AnalisisTab />}
         </>
       )}

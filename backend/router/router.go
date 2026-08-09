@@ -203,6 +203,9 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.GET("/penilaian/rencana/:id/grid", readGrade, nilaiSiswaHandler.Grid)
 			auth.GET("/penilaian/rencana/:id/rekap", readGrade, nilaiSiswaHandler.Rekap)
 			auth.PATCH("/penilaian/nilai", writeGrade, nilaiSiswaHandler.SimpanBatch)
+			auth.GET("/penilaian/rencana/:id/template", readGrade, nilaiSiswaHandler.Template)
+			auth.POST("/penilaian/rencana/:id/impor", writeGrade, nilaiSiswaHandler.Impor)
+			auth.GET("/penilaian/siswa/:id/raport", readGrade, nilaiSiswaHandler.Raport)
 
 			auth.POST("/report-cards", writeGrade, reportCardHandler.Save)
 			auth.GET("/report-cards/leger", readGrade, reportCardHandler.Leger)
