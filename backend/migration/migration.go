@@ -36,6 +36,11 @@ var models = []interface{}{
 	&model.Assessment{},
 	&model.AssessmentScore{},
 	&model.ReportCardScore{},
+	&model.RencanaPenilaian{},
+	&model.KomponenPenilaian{},
+	&model.NilaiSiswa{},
+	&model.NilaiAkhir{},
+	&model.AuditNilai{},
 	&model.Admission{},
 	&model.StudentCoaching{},
 	&model.TalentDevelopment{},
@@ -101,7 +106,11 @@ func Run(db *gorm.DB) error {
 		return err
 	}
 
-	return BackfillAttendance(db)
+	if err := BackfillAttendance(db); err != nil {
+		return err
+	}
+
+	return BackfillPenilaian(db)
 }
 
 // migrateAttendanceSessionIndexes membuat uniqueness berdasarkan tipe dan scope.

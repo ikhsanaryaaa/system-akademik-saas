@@ -60,6 +60,8 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	qrAttendanceHandler := handler.NewQrAttendanceHandler(db)
 	assessmentHandler := handler.NewAssessmentHandler(db)
 	assessmentScoreHandler := handler.NewAssessmentScoreHandler(db)
+	rencanaPenilaianHandler := handler.NewRencanaPenilaianHandler(db)
+	nilaiSiswaHandler := handler.NewNilaiSiswaHandler(db)
 	reportCardHandler := handler.NewReportCardHandler(db)
 	admissionHandler := handler.NewAdmissionHandler(db)
 	studentCoachingHandler := handler.NewStudentCoachingHandler(db)
@@ -189,6 +191,18 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.DELETE("/assessments/:id", writeGrade, assessmentHandler.Delete)
 			auth.GET("/assessments/:id/scores", readGrade, assessmentScoreHandler.Roster)
 			auth.POST("/assessments/:id/scores", writeGrade, assessmentScoreHandler.SaveBulk)
+
+			// Modul Penilaian dengan rencana penilaian dan komponen berbobot.
+			unlockGrade := middleware.RequirePermission("grading.unlock")
+			auth.GET("/penilaian/konteks", readGrade, rencanaPenilaianHandler.Konteks)
+			auth.GET("/penilaian/rencana", readGrade, rencanaPenilaianHandler.Detail)
+			auth.POST("/penilaian/rencana", writeGrade, rencanaPenilaianHandler.Create)
+			auth.PUT("/penilaian/rencana/:id", writeGrade, rencanaPenilaianHandler.Update)
+			auth.POST("/penilaian/rencana/:id/kunci", writeGrade, rencanaPenilaianHandler.Kunci)
+			auth.DELETE("/penilaian/rencana/:id/kunci", unlockGrade, rencanaPenilaianHandler.BukaKunci)
+			auth.GET("/penilaian/rencana/:id/grid", readGrade, nilaiSiswaHandler.Grid)
+			auth.GET("/penilaian/rencana/:id/rekap", readGrade, nilaiSiswaHandler.Rekap)
+			auth.PATCH("/penilaian/nilai", writeGrade, nilaiSiswaHandler.SimpanBatch)
 
 			auth.POST("/report-cards", writeGrade, reportCardHandler.Save)
 			auth.GET("/report-cards/leger", readGrade, reportCardHandler.Leger)

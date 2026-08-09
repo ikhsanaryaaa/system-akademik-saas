@@ -60,6 +60,7 @@ var Permissions = []PermissionDef{
 
 	{"grading.read", "Melihat penilaian, leger, dan raport"},
 	{"grading.create", "Mengelola penilaian dan mengisi nilai"},
+	{"grading.unlock", "Membuka kunci nilai yang sudah dikunci guru"},
 
 	{"kesiswaan.read", "Melihat data kesiswaan"},
 	{"kesiswaan.create", "Membuat data kesiswaan"},
@@ -226,7 +227,8 @@ func curriculumPermissionKeys() []string {
 }
 
 // WakilKurikulumPermissions mengembalikan permission untuk role Wakil Kurikulum:
-// mengelola kurikulum ditambah membaca data master sebagai referensi.
+// mengelola kurikulum, membaca data master sebagai referensi, serta membaca
+// penilaian dan membuka kunci nilai yang sudah dikunci guru.
 func WakilKurikulumPermissions() []string {
-	return append(curriculumPermissionKeys(), "master.read")
+	return append(curriculumPermissionKeys(), "master.read", "grading.read", "grading.unlock")
 }
