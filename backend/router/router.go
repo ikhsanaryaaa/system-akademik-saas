@@ -61,6 +61,7 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	assessmentHandler := handler.NewAssessmentHandler(db)
 	assessmentScoreHandler := handler.NewAssessmentScoreHandler(db)
 	rencanaPenilaianHandler := handler.NewRencanaPenilaianHandler(db)
+	nilaiSiswaHandler := handler.NewNilaiSiswaHandler(db)
 	reportCardHandler := handler.NewReportCardHandler(db)
 	admissionHandler := handler.NewAdmissionHandler(db)
 	studentCoachingHandler := handler.NewStudentCoachingHandler(db)
@@ -199,6 +200,9 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			auth.PUT("/penilaian/rencana/:id", writeGrade, rencanaPenilaianHandler.Update)
 			auth.POST("/penilaian/rencana/:id/kunci", writeGrade, rencanaPenilaianHandler.Kunci)
 			auth.DELETE("/penilaian/rencana/:id/kunci", unlockGrade, rencanaPenilaianHandler.BukaKunci)
+			auth.GET("/penilaian/rencana/:id/grid", readGrade, nilaiSiswaHandler.Grid)
+			auth.GET("/penilaian/rencana/:id/rekap", readGrade, nilaiSiswaHandler.Rekap)
+			auth.PATCH("/penilaian/nilai", writeGrade, nilaiSiswaHandler.SimpanBatch)
 
 			auth.POST("/report-cards", writeGrade, reportCardHandler.Save)
 			auth.GET("/report-cards/leger", readGrade, reportCardHandler.Leger)
