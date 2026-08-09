@@ -61,14 +61,17 @@
   --color-body: #cbd5e1;
   --color-muted: #94a3b8;
   --color-muted-soft: #64748b;
-  --color-hairline: #1e293b;
-  --color-hairline-soft: #172033;
+  /* Dark mode memakai deret navy, bukan slate abu-abu. Komponen biru dijaga
+     lebih tinggi dari merah dan hijau supaya tab, modal, dan border tidak
+     terbaca abu-abu di layar. */
+  --color-hairline: #1c2942;
+  --color-hairline-soft: #141d31;
   --color-canvas: #0f172a;
   --color-surface-soft: #0b1220;
-  --color-surface-strong: #1e293b;
+  --color-surface-strong: #131d33;
 
   --color-sidebar: #0b1120;
-  --color-sidebar-elevated: #1e293b;
+  --color-sidebar-elevated: #16203a;
   --color-on-sidebar: #e2e8f0;
   --color-on-sidebar-muted: #94a3b8;
 
