@@ -115,6 +115,7 @@ const groups: MenuGroup[] = [
     label: "Penilaian",
     icon: BookMarked,
     items: [
+      { label: "Rencana dan Nilai", to: "/penilaian", icon: ClipboardCheck, permission: "grading.read" },
       { label: "Penilaian", to: "/grading/assessments", icon: ClipboardList, permission: "grading.read" },
       { label: "Leger Nilai", to: "/grading/leger", icon: BookMarked, permission: "grading.read" },
       { label: "e-Raport", to: "/grading/report-card", icon: FileText, permission: "grading.read" },

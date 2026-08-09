@@ -28,6 +28,7 @@ import AssessmentsPage from "./pages/grading/AssessmentsPage";
 import AssessmentScoresPage from "./pages/grading/AssessmentScoresPage";
 import LegerPage from "./pages/grading/LegerPage";
 import ReportCardPage from "./pages/grading/ReportCardPage";
+import PenilaianPage from "./pages/penilaian/PenilaianPage";
 import AdmissionsPage from "./pages/kesiswaan/AdmissionsPage";
 import CoachingPage from "./pages/kesiswaan/CoachingPage";
 import TalentPage from "./pages/kesiswaan/TalentPage";
@@ -239,6 +240,7 @@ export default function App() {
       <Route path="/grading/assessments/:id/scores" element={gradingRoute(<AssessmentScoresPage />)} />
       <Route path="/grading/leger" element={gradingRoute(<LegerPage />)} />
       <Route path="/grading/report-card" element={gradingRoute(<ReportCardPage />)} />
+      <Route path="/penilaian" element={gradingRoute(<PenilaianPage />)} />
 
       <Route path="/kesiswaan/admissions" element={kesiswaanRoute(<AdmissionsPage />)} />
       <Route path="/kesiswaan/coaching" element={kesiswaanRoute(<CoachingPage />)} />
