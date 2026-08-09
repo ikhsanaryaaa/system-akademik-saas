@@ -23,7 +23,17 @@ export default function InputNilaiTab({ rencana }: Props) {
 
   const tertunda = useRef<Map<string, EntryNilai>>(new Map());
   const sebelumnya = useRef<GridSiswa[]>([]);
+  const siswaTerkini = useRef<GridSiswa[]>([]);
   const timer = useRef<number | null>(null);
+  // versiGrid dinaikkan saat rollback supaya seluruh input uncontrolled
+  // di-remount dan kembali menampilkan angka yang benar-benar tersimpan.
+  const [versiGrid, setVersiGrid] = useState(0);
+
+  // Ref disinkronkan lewat effect, bukan saat render, supaya render tetap murni.
+  // Isinya dipakai sebagai snapshot rollback sebelum perubahan tertunda pertama.
+  useEffect(() => {
+    siswaTerkini.current = siswa;
+  }, [siswa]);
 
   const rencanaID = rencana?.id ?? null;
   const terkunci = rencana?.status === "TERKUNCI";
@@ -62,6 +72,7 @@ export default function InputNilaiTab({ rencana }: Props) {
       // Rollback ke kondisi sebelum perubahan tertunda supaya layar tidak
       // menampilkan angka yang sebenarnya tidak tersimpan.
       setSiswa(sebelumnya.current);
+      setVersiGrid((v) => v + 1);
       const resp = (err as { response?: { data?: { message?: string } } }).response;
       setPesanGagal(resp?.data?.message ?? "Gagal menyimpan nilai.");
       setStatus("gagal");
@@ -83,18 +94,19 @@ export default function InputNilaiTab({ rencana }: Props) {
 
   const ubahNilai = useCallback(
     (siswaID: string, komponenID: string, nilai: number | null) => {
-      setSiswa((lama) => {
-        // Snapshot sebelum perubahan pertama pada batch berjalan, dipakai rollback.
-        if (tertunda.current.size === 0) sebelumnya.current = lama;
-        tertunda.current.set(`${siswaID}:${komponenID}`, {
-          siswa_id: siswaID,
-          komponen_id: komponenID,
-          nilai,
-        });
-        return lama.map((s) =>
-          s.siswa_id === siswaID ? { ...s, nilai: { ...s.nilai, [komponenID]: nilai } } : s
-        );
+      // Snapshot dan pencatatan perubahan tertunda dilakukan di luar state updater.
+      // Updater harus murni karena React bisa memanggilnya lebih dari sekali.
+      if (tertunda.current.size === 0) sebelumnya.current = siswaTerkini.current;
+      tertunda.current.set(`${siswaID}:${komponenID}`, {
+        siswa_id: siswaID,
+        komponen_id: komponenID,
+        nilai,
       });
+      setSiswa((lama) =>
+        lama.map((s) =>
+          s.siswa_id === siswaID ? { ...s, nilai: { ...s.nilai, [komponenID]: nilai } } : s
+        )
+      );
       setStatus("diam");
       jadwalkanSimpan();
     },
@@ -146,7 +158,7 @@ export default function InputNilaiTab({ rencana }: Props) {
               <th className="px-3 py-2 text-center font-medium">Nilai Akhir</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody key={`${rencanaID}-${versiGrid}`}>
             {siswa.length === 0 && (
               <tr>
                 <td colSpan={komponen.length + 2} className="px-3 py-8 text-center text-muted">
@@ -224,8 +236,24 @@ function IndikatorStatus({
   return <span className="text-sm text-muted-soft">Perubahan tersimpan otomatis</span>;
 }
 
-// SelNilai memegang teksnya sendiri supaya pengetikan pada satu sel tidak
-// memicu render ulang seluruh tabel. Perubahan dilaporkan ke induk saat commit.
+// fokusKe dan teksDari berada di module scope karena tidak bergantung pada
+// state komponen, jadi tidak perlu dibuat ulang tiap render.
+function fokusKe(baris: number, kolom: number) {
+  const target = document.querySelector<HTMLInputElement>(
+    `input[data-baris="${baris}"][data-kolom="${kolom}"]`
+  );
+  target?.focus();
+  target?.select();
+}
+
+function teksDari(nilai: number | null): string {
+  return nilai === null ? "" : String(nilai);
+}
+
+// SelNilai memakai input uncontrolled supaya pengetikan pada satu sel tidak
+// memicu render ulang seluruh tabel, dan supaya prop tidak perlu disalin ke state.
+// Induk me-remount seluruh tbody saat rollback, sehingga nilai yang gagal
+// disimpan kembali ke angka semula.
 const SelNilai = memo(function SelNilai({
   baris,
   kolom,
@@ -245,60 +273,46 @@ const SelNilai = memo(function SelNilai({
   komponenID: string;
   onUbah: (siswaID: string, komponenID: string, nilai: number | null) => void;
 }) {
-  const [teks, setTeks] = useState(nilai === null ? "" : String(nilai));
-
-  useEffect(() => {
-    setTeks(nilai === null ? "" : String(nilai));
-  }, [nilai]);
-
-  function commit() {
-    const bersih = teks.trim();
+  function commit(input: HTMLInputElement) {
+    const bersih = input.value.trim();
     const baru = bersih === "" ? null : Number(bersih);
     if (baru !== null && (Number.isNaN(baru) || baru < 0 || baru > 100)) {
-      setTeks(nilai === null ? "" : String(nilai));
+      input.value = teksDari(nilai);
       return;
     }
     if (baru !== nilai) onUbah(siswaID, komponenID, baru);
   }
 
-  function fokusKe(barisTujuan: number, kolomTujuan: number) {
-    const target = document.querySelector<HTMLInputElement>(
-      `input[data-baris="${barisTujuan}"][data-kolom="${kolomTujuan}"]`
-    );
-    target?.focus();
-    target?.select();
-  }
-
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    const input = e.currentTarget;
     if (e.key === "Escape") {
-      setTeks(nilai === null ? "" : String(nilai));
-      e.currentTarget.blur();
+      input.value = teksDari(nilai);
+      input.blur();
       return;
     }
     if (e.key === "Enter" || e.key === "ArrowDown") {
       e.preventDefault();
-      commit();
+      commit(input);
       fokusKe(baris + 1, kolom);
       return;
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      commit();
+      commit(input);
       fokusKe(baris - 1, kolom);
       return;
     }
     // Panah kiri dan kanan hanya berpindah sel saat kursor sudah di ujung teks,
     // supaya navigasi di dalam angka tetap normal.
-    const input = e.currentTarget;
-    if (e.key === "ArrowRight" && input.selectionStart === teks.length) {
+    if (e.key === "ArrowRight" && input.selectionStart === input.value.length) {
       e.preventDefault();
-      commit();
+      commit(input);
       fokusKe(baris, kolom + 1);
       return;
     }
     if (e.key === "ArrowLeft" && input.selectionStart === 0) {
       e.preventDefault();
-      commit();
+      commit(input);
       fokusKe(baris, kolom - 1);
     }
   }
@@ -311,10 +325,9 @@ const SelNilai = memo(function SelNilai({
       <input
         data-baris={baris}
         data-kolom={kolom}
-        value={teks}
+        defaultValue={teksDari(nilai)}
         disabled={terkunci}
-        onChange={(e) => setTeks(e.target.value)}
-        onBlur={commit}
+        onBlur={(e) => commit(e.currentTarget)}
         onKeyDown={onKeyDown}
         inputMode="decimal"
         aria-label={dibawahKktp ? "Nilai di bawah KKTP" : kosong ? "Belum dinilai" : "Nilai"}

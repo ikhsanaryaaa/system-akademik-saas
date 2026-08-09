@@ -18,7 +18,9 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-const STORAGE_KEY = "penilaian_konteks";
+// Kunci localStorage diberi versi supaya bentuk data lama tidak dibaca sebagai
+// bentuk baru kalau strukturnya berubah nanti.
+const STORAGE_KEY = "penilaian_konteks_v1";
 
 // PenilaianPage adalah kerangka modul Penilaian: context bar sticky berisi empat
 // dropdown cascading, lalu empat tab di bawahnya. Pilihan konteks disimpan di URL
@@ -218,7 +220,12 @@ export default function PenilaianPage() {
       ) : (
         <>
           {tab === "rencana" && (
-            <RencanaTab konteks={konteksTerpilih} rencana={rencana} onTersimpan={muatRencana} />
+            <RencanaTab
+              key={rencana?.id ?? "rencana-baru"}
+              konteks={konteksTerpilih}
+              rencana={rencana}
+              onTersimpan={muatRencana}
+            />
           )}
           {tab === "input" && <InputNilaiTab rencana={rencana} />}
           {tab === "rekap" && <RekapTab rencana={rencana} onBerubah={muatRencana} />}

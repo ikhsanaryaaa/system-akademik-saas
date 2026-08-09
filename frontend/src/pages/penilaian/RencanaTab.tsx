@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowDown, ArrowUp, Lock, Plus } from "lucide-react";
 import IconActions from "../../components/IconActions";
 import { JENIS_KOMPONEN, createRencana, totalBobot, updateRencana } from "../../lib/penilaian";
@@ -10,27 +10,43 @@ interface Props {
   onTersimpan: () => void;
 }
 
-const KOMPONEN_KOSONG: Komponen = {
-  nama: "",
-  jenis: "SUMATIF_LINGKUP_MATERI",
-  bobot: 0,
-  urutan: 0,
-  deskripsi: "",
-};
+// BarisKomponen menambahkan kunci lokal supaya baris baru punya identitas stabil
+// tanpa memakai index array sebagai key React.
+interface BarisKomponen extends Komponen {
+  kunci: string;
+}
+
+// angkaDari menjaga parse input numerik: kosong dan teks bukan angka
+// dikembalikan ke fallback, bukan diam-diam jadi 0 atau NaN.
+function angkaDari(teks: string, fallback: number): number {
+  if (teks.trim() === "") return fallback;
+  const angka = Number(teks);
+  return Number.isNaN(angka) ? fallback : angka;
+}
+
+function barisBaru(urutan: number): BarisKomponen {
+  return {
+    kunci: crypto.randomUUID(),
+    nama: "",
+    jenis: "SUMATIF_LINGKUP_MATERI",
+    bobot: 0,
+    urutan,
+    deskripsi: "",
+  };
+}
 
 // RencanaTab mengelola komponen penilaian beserta bobotnya. Tombol simpan
 // nonaktif selama total bobot belum 100, sesuai aturan yang juga ditegakkan server.
+//
+// Induk memberi key berdasarkan id rencana, jadi komponen ini di-remount saat
+// konteks berganti dan state awal cukup diambil dari prop sekali lewat useState.
 export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
-  const [komponen, setKomponen] = useState<Komponen[]>([]);
-  const [kktp, setKktp] = useState(70);
+  const [komponen, setKomponen] = useState<BarisKomponen[]>(() =>
+    rencana ? rencana.komponen.map((k) => ({ ...k, kunci: k.id ?? crypto.randomUUID() })) : []
+  );
+  const [kktp, setKktp] = useState(rencana?.kktp ?? 70);
   const [menyimpan, setMenyimpan] = useState(false);
   const [pesan, setPesan] = useState<string | null>(null);
-
-  useEffect(() => {
-    setKomponen(rencana ? rencana.komponen.map((k) => ({ ...k })) : []);
-    setKktp(rencana?.kktp ?? 70);
-    setPesan(null);
-  }, [rencana]);
 
   const terkunci = rencana?.status === "TERKUNCI";
   const total = totalBobot(komponen);
@@ -41,7 +57,7 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
   }
 
   function tambah() {
-    setKomponen((lama) => [...lama, { ...KOMPONEN_KOSONG, urutan: lama.length }]);
+    setKomponen((lama) => [...lama, barisBaru(lama.length)]);
   }
 
   function hapus(index: number) {
@@ -62,7 +78,8 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
   async function simpan(konfirmasi = false) {
     setMenyimpan(true);
     setPesan(null);
-    const payload = komponen.map((k, i) => ({ ...k, urutan: i }));
+    // kunci hanya identitas lokal untuk key React, tidak ikut dikirim ke server.
+    const payload: Komponen[] = komponen.map(({ kunci: _kunci, ...k }, i) => ({ ...k, urutan: i }));
     try {
       if (rencana) await updateRencana(rencana.id, konteks, kktp, payload, konfirmasi);
       else await createRencana(konteks, kktp, payload);
@@ -108,7 +125,7 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
             max={100}
             value={kktp}
             disabled={terkunci}
-            onChange={(e) => setKktp(Number(e.target.value))}
+            onChange={(e) => setKktp(angkaDari(e.target.value, 0))}
             className="w-28 rounded-lg border border-hairline bg-canvas px-3 py-2 font-mono text-ink focus:border-primary focus:outline-none disabled:opacity-60"
           />
         </label>
@@ -154,7 +171,7 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
               </tr>
             )}
             {komponen.map((k, i) => (
-              <tr key={k.id ?? `baru-${i}`} className="border-t border-hairline-soft">
+              <tr key={k.kunci} className="border-t border-hairline-soft">
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-1">
                     <span className="w-6 font-mono text-muted">{i + 1}</span>
@@ -186,6 +203,7 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
                     disabled={terkunci}
                     onChange={(e) => ubah(i, { nama: e.target.value })}
                     placeholder="Contoh: Sumatif Bab 1"
+                    aria-label={`Nama komponen baris ${i + 1}`}
                     className="w-full rounded-lg border border-hairline bg-canvas px-3 py-1.5 text-ink focus:border-primary focus:outline-none disabled:opacity-60"
                   />
                 </td>
@@ -194,6 +212,7 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
                     value={k.jenis}
                     disabled={terkunci}
                     onChange={(e) => ubah(i, { jenis: e.target.value })}
+                    aria-label={`Jenis komponen baris ${i + 1}`}
                     className="rounded-lg border border-hairline bg-canvas px-3 py-1.5 text-ink focus:border-primary focus:outline-none disabled:opacity-60"
                   >
                     {JENIS_KOMPONEN.map((j) => (
@@ -210,7 +229,8 @@ export default function RencanaTab({ konteks, rencana, onTersimpan }: Props) {
                     max={100}
                     value={k.bobot}
                     disabled={terkunci}
-                    onChange={(e) => ubah(i, { bobot: Number(e.target.value) })}
+                    onChange={(e) => ubah(i, { bobot: angkaDari(e.target.value, 0) })}
+                    aria-label={`Bobot komponen baris ${i + 1}`}
                     className="w-24 rounded-lg border border-hairline bg-canvas px-3 py-1.5 text-right font-mono text-ink focus:border-primary focus:outline-none disabled:opacity-60"
                   />
                 </td>

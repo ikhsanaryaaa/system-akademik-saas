@@ -10,10 +10,6 @@ export const JENIS_KOMPONEN = [
 
 export type JenisKomponen = (typeof JENIS_KOMPONEN)[number]["value"];
 
-export function labelJenis(jenis: string): string {
-  return JENIS_KOMPONEN.find((j) => j.value === jenis)?.label ?? jenis;
-}
-
 export interface Konteks {
   kelas_id: string;
   kelas: string;
