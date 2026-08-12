@@ -8,8 +8,9 @@ import (
 )
 
 // RequirePermission memastikan user punya permission tertentu.
+// Bila diberi lebih dari satu, cukup salah satunya yang dimiliki.
 // Harus dipasang setelah middleware Auth.
-func RequirePermission(required string) gin.HandlerFunc {
+func RequirePermission(required ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		raw, exists := c.Get(CtxPermissions)
 		if !exists {
@@ -20,9 +21,11 @@ func RequirePermission(required string) gin.HandlerFunc {
 
 		perms, _ := raw.([]string)
 		for _, p := range perms {
-			if p == required {
-				c.Next()
-				return
+			for _, want := range required {
+				if p == want {
+					c.Next()
+					return
+				}
 			}
 		}
 

@@ -45,7 +45,9 @@ var models = []interface{}{
 	&model.StudentCoaching{},
 	&model.TalentDevelopment{},
 	&model.StudentActivity{},
+	&model.ActivityParticipant{},
 	&model.ViolationType{},
+	&model.SanctionLevel{},
 	&model.CounselingAgenda{},
 	&model.ViolationRecord{},
 	&model.CounselingSession{},
@@ -103,6 +105,15 @@ func Run(db *gorm.DB) error {
 
 	// Drop index lama session_type_date unique, lalu buat partial indexes.
 	if err := migrateAttendanceSessionIndexes(db); err != nil {
+		return err
+	}
+
+	// Sesi konseling lama menyimpan bidang layanan pada kolom type. Nilainya
+	// dipindahkan ke field supaya type dapat dipakai untuk jenis layanan.
+	if err := db.Exec(`UPDATE counseling_sessions SET field = type, type = '' WHERE type IN ('pribadi', 'sosial', 'belajar', 'karir', 'karier') AND COALESCE(field, '') = ''`).Error; err != nil {
+		return err
+	}
+	if err := db.Exec(`UPDATE counseling_sessions SET field = 'karier' WHERE field = 'karir'`).Error; err != nil {
 		return err
 	}
 

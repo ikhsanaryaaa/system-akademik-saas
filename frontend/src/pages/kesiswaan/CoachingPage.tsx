@@ -9,8 +9,6 @@ const config: CrudModuleConfig = {
   filters: ["class", "major"],
   fields: [
     { key: "student_id", label: "Siswa", type: "student", required: true },
-    { key: "class_id", label: "Kelas", type: "class" },
-    { key: "major_id", label: "Jurusan", type: "major" },
     { key: "topic", label: "Topik", type: "text", required: true },
     { key: "coach_name", label: "Pembina", type: "text" },
     { key: "date", label: "Tanggal", type: "date" },

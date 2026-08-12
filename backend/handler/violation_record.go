@@ -21,11 +21,11 @@ func NewViolationRecordHandler(db *gorm.DB) *ViolationRecordHandler {
 	return &ViolationRecordHandler{db: db}
 }
 
+// ClassID, MajorID, dan AcademicYearID diisi server dari siswa yang dipilih dan
+// tahun ajaran aktif, tidak diterima dari client.
 type violationRecordRequest struct {
 	StudentID       uuid.UUID  `json:"student_id" binding:"required"`
 	ViolationTypeID uuid.UUID  `json:"violation_type_id" binding:"required"`
-	ClassID         *uuid.UUID `json:"class_id"`
-	MajorID         *uuid.UUID `json:"major_id"`
 	Description     string     `json:"description"`
 	Date            *time.Time `json:"date"`
 	ReporterName    string     `json:"reporter_name"`
@@ -67,11 +67,17 @@ func (h *ViolationRecordHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	classID, majorID, yearID, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item := model.ViolationRecord{
 		StudentID:       req.StudentID,
 		ViolationTypeID: req.ViolationTypeID,
-		ClassID:         req.ClassID,
-		MajorID:         req.MajorID,
+		ClassID:         classID,
+		MajorID:         majorID,
+		AcademicYearID:  yearID,
 		Description:     req.Description,
 		Date:            req.Date,
 		ReporterName:    req.ReporterName,
@@ -100,10 +106,20 @@ func (h *ViolationRecordHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Pelanggaran tidak ditemukan", nil)
 		return
 	}
+	classID, majorID, yearID, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item.StudentID = req.StudentID
 	item.ViolationTypeID = req.ViolationTypeID
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
+	item.ClassID = classID
+	item.MajorID = majorID
+	// Tahun ajaran hanya diisi sekali supaya koreksi data tidak memindahkan
+	// catatan lama ke akumulasi poin tahun berjalan.
+	if item.AcademicYearID == nil {
+		item.AcademicYearID = yearID
+	}
 	item.Description = req.Description
 	item.Date = req.Date
 	item.ReporterName = req.ReporterName

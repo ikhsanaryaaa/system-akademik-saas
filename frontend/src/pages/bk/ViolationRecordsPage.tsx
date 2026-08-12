@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState, type FormEvent } from "react";
 import { http, type ApiResponse } from "../../lib/http";
-import { simpleList, paginatedList, type ClassRow, type StudentRow, type Major } from "../../lib/master";
+import { simpleList, paginatedList, type ClassRow, type StudentRow } from "../../lib/master";
 import { followUpStatuses, type ViolationRecord, type ViolationType } from "../../lib/bk";
 import { fmtDate } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
@@ -19,8 +19,6 @@ interface RecordForm {
   id: string | null;
   student_id: string;
   violation_type_id: string;
-  class_id: string;
-  major_id: string;
   description: string;
   date: string;
   reporter_name: string;
@@ -32,8 +30,6 @@ const emptyRecord: RecordForm = {
   id: null,
   student_id: "",
   violation_type_id: "",
-  class_id: "",
-  major_id: "",
   description: "",
   date: "",
   reporter_name: "",
@@ -57,8 +53,6 @@ function recordReducer(state: RecordForm, action: RecordAction): RecordForm {
         id: action.value.id,
         student_id: action.value.student_id,
         violation_type_id: action.value.violation_type_id,
-        class_id: action.value.class_id ?? "",
-        major_id: action.value.major_id ?? "",
         description: action.value.description ?? "",
         date: (action.value.date ?? "").slice(0, 10),
         reporter_name: action.value.reporter_name ?? "",
@@ -126,7 +120,6 @@ export default function ViolationRecordsPage() {
   const [rows, setRows] = useState<ViolationRecord[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [classes, setClasses] = useState<ClassRow[]>([]);
-  const [majors, setMajors] = useState<Major[]>([]);
   const [types, setTypes] = useState<ViolationType[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterClass, setFilterClass] = useState("");
@@ -156,7 +149,6 @@ export default function ViolationRecordsPage() {
     setStudents(st.items);
     const cls = await paginatedList<ClassRow>("/classes", { per_page: 100 });
     setClasses(cls.items);
-    setMajors(await simpleList<Major>("/majors"));
     setTypes(await simpleList<ViolationType>("/violation-types"));
   }
 
@@ -175,8 +167,6 @@ export default function ViolationRecordsPage() {
     const body = {
       student_id: record.student_id,
       violation_type_id: record.violation_type_id,
-      class_id: record.class_id || null,
-      major_id: record.major_id || null,
       description: record.description,
       date: record.date ? new Date(record.date).toISOString() : null,
       reporter_name: record.reporter_name,
@@ -417,42 +407,6 @@ export default function ViolationRecordsPage() {
                 onChange={(e) => dispatchRecord({ type: "field", key: "date", value: e.target.value })}
                 className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
               />
-            </div>
-            <div>
-              <label htmlFor="vr-class" className="block text-sm font-medium text-body">
-                Kelas
-              </label>
-              <select
-                id="vr-class"
-                value={record.class_id}
-                onChange={(e) => dispatchRecord({ type: "field", key: "class_id", value: e.target.value })}
-                className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
-              >
-                <option value="">Pilih kelas</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="vr-major" className="block text-sm font-medium text-body">
-                Jurusan
-              </label>
-              <select
-                id="vr-major"
-                value={record.major_id}
-                onChange={(e) => dispatchRecord({ type: "field", key: "major_id", value: e.target.value })}
-                className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
-              >
-                <option value="">Pilih jurusan</option>
-                {majors.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="vr-reporter" className="block text-sm font-medium text-body">

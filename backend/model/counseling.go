@@ -26,9 +26,12 @@ func (v *ViolationType) BeforeCreate(_ *gorm.DB) error {
 }
 
 // CounselingAgenda adalah agenda kegiatan BK.
+// Field adalah bidang layanan dan Component adalah komponen layanan menurut POP BK.
 type CounselingAgenda struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
 	Title       string     `gorm:"size:150;not null" json:"title"`
+	Field       string     `gorm:"size:30" json:"field"`
+	Component   string     `gorm:"size:40" json:"component"`
 	Description string     `gorm:"type:text" json:"description"`
 	Location    string     `gorm:"size:150" json:"location"`
 	Date        *time.Time `json:"date,omitempty"`
@@ -52,6 +55,7 @@ type ViolationRecord struct {
 	ViolationTypeID uuid.UUID  `gorm:"type:uuid;not null;index" json:"violation_type_id"`
 	ClassID         *uuid.UUID `gorm:"type:uuid;index" json:"class_id,omitempty"`
 	MajorID         *uuid.UUID `gorm:"type:uuid;index" json:"major_id,omitempty"`
+	AcademicYearID  *uuid.UUID `gorm:"type:uuid;index" json:"academic_year_id,omitempty"`
 	Description     string     `gorm:"type:text" json:"description"`
 	Date            *time.Time `json:"date,omitempty"`
 	ReporterName    string     `gorm:"size:120" json:"reporter_name"`
@@ -82,6 +86,7 @@ type CounselingSession struct {
 	ClassID     *uuid.UUID `gorm:"type:uuid;index" json:"class_id,omitempty"`
 	MajorID     *uuid.UUID `gorm:"type:uuid;index" json:"major_id,omitempty"`
 	Type        string     `gorm:"size:50" json:"type"`
+	Field       string     `gorm:"size:30" json:"field"`
 	Topic       string     `gorm:"size:150;not null" json:"topic"`
 	Summary     string     `gorm:"type:text" json:"summary"`
 	Result      string     `gorm:"type:text" json:"result"`
@@ -97,6 +102,27 @@ type CounselingSession struct {
 }
 
 func (s *CounselingSession) BeforeCreate(_ *gorm.DB) error {
+	if s.ID == uuid.Nil {
+		s.ID = uuid.New()
+	}
+	return nil
+}
+
+// SanctionLevel adalah master tahap sanksi berdasarkan ambang akumulasi poin.
+// Tahap yang berlaku adalah baris dengan MinPoint tertinggi yang masih di bawah
+// atau sama dengan poin siswa pada tahun ajaran berjalan.
+type SanctionLevel struct {
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	MinPoint int       `gorm:"not null;uniqueIndex" json:"min_point"`
+	Name     string    `gorm:"size:100;not null" json:"name"`
+	Action   string    `gorm:"type:text" json:"action"`
+	Note     string    `gorm:"type:text" json:"note"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (s *SanctionLevel) BeforeCreate(_ *gorm.DB) error {
 	if s.ID == uuid.Nil {
 		s.ID = uuid.New()
 	}

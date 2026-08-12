@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { http, type ApiResponse } from "../../lib/http";
 import { paginatedList, type StudentRow } from "../../lib/master";
 import type { StudentBook } from "../../lib/bk";
@@ -40,9 +40,20 @@ export default function StudentBookPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink tracking-tight">Buku Siswa</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-ink tracking-tight">Buku Siswa</h1>
+        {book && (
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="h-[38px] rounded-md border border-hairline px-4 text-sm text-body hover:bg-surface-soft print:hidden"
+          >
+            Cetak
+          </button>
+        )}
+      </div>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-hairline bg-canvas p-4 print:hidden">
         <div>
           <label htmlFor="sb-student" className="block text-sm font-medium text-body">
             Siswa
@@ -77,99 +88,117 @@ export default function StudentBookPage() {
               </p>
             </div>
             <div className="ml-auto text-right">
-              <p className="text-xs uppercase tracking-wide text-muted">Total Poin Pelanggaran</p>
+              <p className="text-xs uppercase tracking-wide text-muted">
+                Akumulasi Poin {book.academic_year?.name ?? "Seluruh Riwayat"}
+              </p>
               <p className="font-mono text-2xl font-semibold text-danger">{book.total_point}</p>
             </div>
           </div>
 
+          <div className="rounded-lg border border-hairline bg-canvas p-4">
+            <p className="text-xs uppercase tracking-wide text-muted">Tahap Sanksi Berjalan</p>
+            {book.sanction ? (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-md bg-danger-soft px-3 py-1 text-sm font-medium text-danger">
+                  <span className="size-2 rounded-full bg-danger" aria-hidden="true" />
+                  {book.sanction.name}
+                </span>
+                <span className="font-mono text-xs text-muted">ambang {book.sanction.min_point} poin</span>
+                <p className="w-full text-sm text-body">{book.sanction.action || "-"}</p>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-muted">Belum mencapai ambang tahap sanksi mana pun.</p>
+            )}
+          </div>
+
           <Section title="Pelanggaran" count={book.violations.length}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  <th className="px-4 py-3">Jenis</th>
-                  <th className="px-4 py-3">Poin</th>
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3">Tindak Lanjut</th>
+            <Table head={["Jenis", "Poin", "Tanggal", "Tindak Lanjut"]}>
+              {book.violations.map((v) => (
+                <tr key={v.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{v.violation_type?.name ?? "-"}</td>
+                  <td className="px-4 py-3 font-mono">{v.violation_type?.point ?? 0}</td>
+                  <td className="px-4 py-3 font-mono">{fmtDate(v.date)}</td>
+                  <td className="px-4 py-3">{v.follow_up_status}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {book.violations.map((v) => (
-                  <tr key={v.id} className="border-t border-hairline">
-                    <td className="px-4 py-3 text-ink">{v.violation_type?.name ?? "-"}</td>
-                    <td className="px-4 py-3 font-mono">{v.violation_type?.point ?? 0}</td>
-                    <td className="px-4 py-3 font-mono">{fmtDate(v.date)}</td>
-                    <td className="px-4 py-3">{v.follow_up_status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </Table>
           </Section>
 
           <Section title="Prestasi" count={book.achievements.length}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  <th className="px-4 py-3">Judul</th>
-                  <th className="px-4 py-3">Tingkat</th>
-                  <th className="px-4 py-3">Peringkat</th>
-                  <th className="px-4 py-3">Tanggal</th>
+            <Table head={["Judul", "Bidang", "Tingkat", "Peringkat", "Poin", "Tanggal"]}>
+              {book.achievements.map((a) => (
+                <tr key={a.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{a.title}</td>
+                  <td className="px-4 py-3">{a.field || "-"}</td>
+                  <td className="px-4 py-3">{a.level}</td>
+                  <td className="px-4 py-3">{a.rank}</td>
+                  <td className="px-4 py-3 font-mono">{a.point}</td>
+                  <td className="px-4 py-3 font-mono">{fmtDate(a.date)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {book.achievements.map((a) => (
-                  <tr key={a.id} className="border-t border-hairline">
-                    <td className="px-4 py-3 text-ink">{a.title}</td>
-                    <td className="px-4 py-3">{a.level}</td>
-                    <td className="px-4 py-3">{a.rank}</td>
-                    <td className="px-4 py-3 font-mono">{fmtDate(a.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </Table>
           </Section>
 
           <Section title="Sesi Konseling" count={book.sessions.length}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  <th className="px-4 py-3">Topik</th>
-                  <th className="px-4 py-3">Jenis</th>
-                  <th className="px-4 py-3">Konselor</th>
-                  <th className="px-4 py-3">Tanggal</th>
+            <Table head={["Topik", "Jenis", "Bidang", "Konselor", "Tanggal"]}>
+              {book.sessions.map((s) => (
+                <tr key={s.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{s.topic}</td>
+                  <td className="px-4 py-3">{s.type || "-"}</td>
+                  <td className="px-4 py-3">{s.field || "-"}</td>
+                  <td className="px-4 py-3">{s.counsel_name}</td>
+                  <td className="px-4 py-3 font-mono">{fmtDate(s.date)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {book.sessions.map((s) => (
-                  <tr key={s.id} className="border-t border-hairline">
-                    <td className="px-4 py-3 text-ink">{s.topic}</td>
-                    <td className="px-4 py-3">{s.type}</td>
-                    <td className="px-4 py-3">{s.counsel_name}</td>
-                    <td className="px-4 py-3 font-mono">{fmtDate(s.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </Table>
           </Section>
 
           <Section title="Home Visit" count={book.home_visits.length}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                  <th className="px-4 py-3">Tujuan</th>
-                  <th className="px-4 py-3">Petugas</th>
-                  <th className="px-4 py-3">Tanggal</th>
+            <Table head={["Tujuan", "Petugas", "Tanggal"]}>
+              {book.home_visits.map((h) => (
+                <tr key={h.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{h.purpose}</td>
+                  <td className="px-4 py-3">{h.officer}</td>
+                  <td className="px-4 py-3 font-mono">{fmtDate(h.date)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {book.home_visits.map((h) => (
-                  <tr key={h.id} className="border-t border-hairline">
-                    <td className="px-4 py-3 text-ink">{h.purpose}</td>
-                    <td className="px-4 py-3">{h.officer}</td>
-                    <td className="px-4 py-3 font-mono">{fmtDate(h.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+            </Table>
+          </Section>
+
+          <Section title="Pembinaan Kesiswaan" count={book.coachings.length}>
+            <Table head={["Topik", "Pembina", "Tanggal"]}>
+              {book.coachings.map((c) => (
+                <tr key={c.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{c.topic}</td>
+                  <td className="px-4 py-3">{c.coach_name}</td>
+                  <td className="px-4 py-3 font-mono">{fmtDate(c.date)}</td>
+                </tr>
+              ))}
+            </Table>
+          </Section>
+
+          <Section title="Bakat dan Minat" count={book.talents.length}>
+            <Table head={["Bidang", "Kategori", "Pembimbing"]}>
+              {book.talents.map((t) => (
+                <tr key={t.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{t.field}</td>
+                  <td className="px-4 py-3">{t.category}</td>
+                  <td className="px-4 py-3">{t.mentor}</td>
+                </tr>
+              ))}
+            </Table>
+          </Section>
+
+          <Section title="Kegiatan Diikuti" count={book.activities.length}>
+            <Table head={["Kegiatan", "Jenis", "Peran"]}>
+              {book.activities.map((a) => (
+                <tr key={a.id} className="border-t border-hairline">
+                  <td className="px-4 py-3 text-ink">{a.activity?.name ?? "-"}</td>
+                  <td className="px-4 py-3">{a.activity?.type ?? "-"}</td>
+                  <td className="px-4 py-3">{a.role}</td>
+                </tr>
+              ))}
+            </Table>
           </Section>
         </div>
       )}
@@ -177,7 +206,7 @@ export default function StudentBookPage() {
   );
 }
 
-function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+function Section({ title, count, children }: { title: string; count: number; children: ReactNode }) {
   return (
     <div className="overflow-hidden rounded-lg border border-hairline bg-canvas">
       <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
@@ -186,5 +215,22 @@ function Section({ title, count, children }: { title: string; count: number; chi
       </div>
       {count === 0 ? <p className="px-4 py-6 text-center text-sm text-muted">Belum ada data.</p> : children}
     </div>
+  );
+}
+
+function Table({ head, children }: { head: string[]; children: ReactNode }) {
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="bg-surface-soft text-left text-xs font-semibold uppercase tracking-wide text-muted">
+          {head.map((h) => (
+            <th key={h} className="px-4 py-3">
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>{children}</tbody>
+    </table>
   );
 }

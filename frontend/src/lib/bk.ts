@@ -1,5 +1,7 @@
 // Tipe modul Bimbingan Konseling (BK).
 
+import type { ActivityParticipant, StudentCoaching, TalentDevelopment } from "./kesiswaan";
+
 export interface ViolationType {
   id: string;
   name: string;
@@ -10,9 +12,19 @@ export interface ViolationType {
 export interface CounselingAgenda {
   id: string;
   title: string;
+  field: string;
+  component: string;
   description: string;
   location: string;
   date?: string;
+}
+
+export interface SanctionLevel {
+  id: string;
+  min_point: number;
+  name: string;
+  action: string;
+  note: string;
 }
 
 export interface ViolationRecord {
@@ -39,6 +51,7 @@ export interface CounselingSession {
   class_id?: string;
   major_id?: string;
   type: string;
+  field: string;
   topic: string;
   summary: string;
   result: string;
@@ -69,11 +82,14 @@ export interface Achievement {
   student_id: string;
   class_id?: string;
   major_id?: string;
+  academic_year_id?: string;
   title: string;
+  field: string;
   category: string;
   level: string;
   rank: string;
   organizer: string;
+  point: number;
   date?: string;
   student?: { name: string; nis: string };
   class?: { name: string };
@@ -99,9 +115,24 @@ export interface StudentBook {
   achievements: Achievement[];
   sessions: CounselingSession[];
   home_visits: HomeVisit[];
+  coachings: StudentCoaching[];
+  talents: TalentDevelopment[];
+  activities: ActivityParticipant[];
+  // total_point adalah akumulasi tahun ajaran berjalan, bukan sepanjang riwayat.
   total_point: number;
+  sanction: SanctionLevel | null;
+  academic_year: { id: string; name: string } | null;
 }
 
 export const followUpStatuses = ["open", "in_progress", "resolved"];
-export const counselingTypes = ["pribadi", "sosial", "belajar", "karir"];
 export const achievementLevels = ["sekolah", "kecamatan", "kabupaten", "provinsi", "nasional", "internasional"];
+
+// Istilah layanan mengikuti POP BK terbitan Kemendikbud.
+export const counselingTypes = ["individu", "kelompok", "klasikal", "konsultasi", "mediasi"];
+export const serviceFields = ["pribadi", "sosial", "belajar", "karier"];
+export const serviceComponents = [
+  { value: "layanan_dasar", label: "Layanan Dasar" },
+  { value: "peminatan", label: "Peminatan dan Perencanaan Individual" },
+  { value: "layanan_responsif", label: "Layanan Responsif" },
+  { value: "dukungan_sistem", label: "Dukungan Sistem" },
+];

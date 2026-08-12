@@ -99,8 +99,12 @@ func NewCounselingAgendaHandler(db *gorm.DB) *CounselingAgendaHandler {
 	return &CounselingAgendaHandler{db: db}
 }
 
+// Field dan Component memakai istilah POP BK: empat bidang layanan dan
+// empat komponen layanan.
 type counselingAgendaRequest struct {
 	Title       string     `json:"title" binding:"required"`
+	Field       string     `json:"field" binding:"omitempty,oneof=pribadi sosial belajar karier"`
+	Component   string     `json:"component" binding:"omitempty,oneof=layanan_dasar peminatan layanan_responsif dukungan_sistem"`
 	Description string     `json:"description"`
 	Location    string     `json:"location"`
 	Date        *time.Time `json:"date"`
@@ -121,7 +125,7 @@ func (h *CounselingAgendaHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
-	item := model.CounselingAgenda{Title: req.Title, Description: req.Description, Location: req.Location, Date: req.Date}
+	item := model.CounselingAgenda{Title: req.Title, Field: req.Field, Component: req.Component, Description: req.Description, Location: req.Location, Date: req.Date}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan agenda BK", nil)
 		return
@@ -146,6 +150,8 @@ func (h *CounselingAgendaHandler) Update(c *gin.Context) {
 		return
 	}
 	item.Title = req.Title
+	item.Field = req.Field
+	item.Component = req.Component
 	item.Description = req.Description
 	item.Location = req.Location
 	item.Date = req.Date

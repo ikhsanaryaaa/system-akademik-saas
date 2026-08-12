@@ -1,4 +1,5 @@
 import CrudModulePage, { type CrudModuleConfig } from "../../components/CrudModulePage";
+import { bidangOptions } from "../../lib/kesiswaan";
 
 const config: CrudModuleConfig = {
   title: "Pengembangan Bakat dan Minat",
@@ -8,9 +9,7 @@ const config: CrudModuleConfig = {
   filters: ["class", "major"],
   fields: [
     { key: "student_id", label: "Siswa", type: "student", required: true },
-    { key: "class_id", label: "Kelas", type: "class" },
-    { key: "major_id", label: "Jurusan", type: "major" },
-    { key: "field", label: "Bidang", type: "text", required: true },
+    { key: "field", label: "Bidang", type: "select", options: bidangOptions, required: true },
     { key: "category", label: "Kategori", type: "select", options: ["akademik", "non-akademik"] },
     { key: "mentor", label: "Pembimbing", type: "text" },
     { key: "detail", label: "Detail", type: "textarea" },
