@@ -46,7 +46,8 @@ import SanctionLevelsPage from "./pages/bk/SanctionLevelsPage";
 import DutySchedulesPage from "./pages/piket/DutySchedulesPage";
 import DutyLogsPage from "./pages/piket/DutyLogsPage";
 import GuestBookPage from "./pages/piket/GuestBookPage";
-import DailyViolationsPage from "./pages/piket/DailyViolationsPage";
+import PiketTodayPage from "./pages/piket/PiketTodayPage";
+import PiketReportPage from "./pages/piket/PiketReportPage";
 import LatenessPage from "./pages/piket/LatenessPage";
 import LeavePermitsPage from "./pages/piket/LeavePermitsPage";
 import InternshipPlacesPage from "./pages/bkk/InternshipPlacesPage";
@@ -269,10 +270,11 @@ export default function App() {
       <Route path="/bk/sanction-levels" element={bkRoute(<SanctionLevelsPage />)} />
       <Route path="/bk/student-book" element={bkRoute(<StudentBookPage />)} />
 
+      <Route path="/piket/today" element={piketRoute(<PiketTodayPage />)} />
+      <Route path="/piket/report" element={piketRoute(<PiketReportPage />)} />
       <Route path="/piket/schedules" element={piketRoute(<DutySchedulesPage />)} />
       <Route path="/piket/logs" element={piketRoute(<DutyLogsPage />)} />
       <Route path="/piket/guest-book" element={piketRoute(<GuestBookPage />)} />
-      <Route path="/piket/daily-violations" element={piketRoute(<DailyViolationsPage />)} />
       <Route path="/piket/lateness" element={piketRoute(<LatenessPage />)} />
       <Route path="/piket/leave-permits" element={piketRoute(<LeavePermitsPage />)} />
 

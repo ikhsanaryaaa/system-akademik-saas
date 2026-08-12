@@ -147,10 +147,10 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       setClasses(cls.items);
     }
     if (needsMajor) setMajors(await simpleList<Major>("/majors"));
-    if (needsTeacher) {
-      const tc = await paginatedList<{ id: string; name: string }>("/teachers", { per_page: 100 });
-      setTeachers(tc.items);
-    }
+    // Endpoint pendidik membalas array polos, bukan bentuk paginated, jadi
+    // harus dibaca dengan simpleList. Memakai paginatedList membuat hasilnya
+    // undefined dan halaman ikut mati saat modal dibuka.
+    if (needsTeacher) setTeachers(await simpleList<{ id: string; name: string }>("/teachers"));
     // Muat daftar opsi untuk tiap field bertipe "ref" secara paralel.
     const refFields = fields.filter((f) => f.type === "ref" && f.refPath);
     const loaded = await Promise.all(
@@ -464,8 +464,10 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       );
     }
     if (f.type === "student" || f.type === "class" || f.type === "major" || f.type === "teacher" || f.type === "ref") {
+      // Selalu dijatuhkan ke array kosong. Respon yang tidak sesuai dugaan
+      // cukup membuat pilihannya kosong, bukan mematikan seluruh halaman.
       const list =
-        f.type === "student"
+        (f.type === "student"
           ? students
           : f.type === "class"
             ? classes
@@ -473,7 +475,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
               ? majors
               : f.type === "teacher"
                 ? teachers
-                : refData[f.key] ?? [];
+                : refData[f.key]) ?? [];
       return (
         <select id={id} aria-label={f.label} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
           <option value="">Pilih</option>

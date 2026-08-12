@@ -80,8 +80,8 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	dutyScheduleHandler := handler.NewDutyScheduleHandler(db)
 	dutyLogHandler := handler.NewDutyLogHandler(db)
 	guestBookHandler := handler.NewGuestBookHandler(db)
-	dailyViolationHandler := handler.NewDailyViolationHandler(db)
 	latenessHandler := handler.NewLatenessHandler(db)
+	piketHandler := handler.NewPiketHandler(db)
 	leavePermitHandler := handler.NewLeavePermitHandler(db)
 	internshipPlaceHandler := handler.NewInternshipPlaceHandler(db)
 	internshipHandler := handler.NewInternshipHandler(db)
@@ -249,9 +249,16 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerPiketCRUD(auth, "/duty-schedules", dutyScheduleHandler.List, dutyScheduleHandler.Create, dutyScheduleHandler.Update, dutyScheduleHandler.Delete)
 			registerPiketCRUD(auth, "/duty-logs", dutyLogHandler.List, dutyLogHandler.Create, dutyLogHandler.Update, dutyLogHandler.Delete)
 			registerPiketCRUD(auth, "/guest-book", guestBookHandler.List, guestBookHandler.Create, guestBookHandler.Update, guestBookHandler.Delete)
-			registerPiketCRUD(auth, "/daily-violations", dailyViolationHandler.List, dailyViolationHandler.Create, dailyViolationHandler.Update, dailyViolationHandler.Delete)
 			registerPiketCRUD(auth, "/lateness", latenessHandler.List, latenessHandler.Create, latenessHandler.Update, latenessHandler.Delete)
 			registerPiketCRUD(auth, "/leave-permits", leavePermitHandler.List, leavePermitHandler.Create, leavePermitHandler.Update, leavePermitHandler.Delete)
+
+			// Penutupan izin keluar dan jam keluar tamu jadi aksi tersendiri,
+			// bukan bagian modal edit.
+			auth.PUT("/leave-permits/:id/return", middleware.RequirePermission("piket.update"), leavePermitHandler.Return)
+			auth.PUT("/guest-book/:id/checkout", middleware.RequirePermission("piket.update"), guestBookHandler.CheckOut)
+
+			auth.GET("/piket/today", middleware.RequirePermission("piket.read"), piketHandler.Today)
+			auth.GET("/piket/report", middleware.RequirePermission("piket.read"), piketHandler.Report)
 
 			// Bursa Kerja Khusus.
 			registerBkkCRUD(auth, "/internship-places", internshipPlaceHandler.List, internshipPlaceHandler.Create, internshipPlaceHandler.Update, internshipPlaceHandler.Delete)

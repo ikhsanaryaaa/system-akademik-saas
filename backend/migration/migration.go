@@ -57,7 +57,6 @@ var models = []interface{}{
 	&model.DutySchedule{},
 	&model.DutyLog{},
 	&model.GuestBook{},
-	&model.DailyViolation{},
 	&model.Lateness{},
 	&model.LeavePermit{},
 	&model.InternshipPlace{},
@@ -121,7 +120,46 @@ func Run(db *gorm.DB) error {
 		return err
 	}
 
+	if err := backfillPiket(db); err != nil {
+		return err
+	}
+
 	return BackfillPenilaian(db)
+}
+
+// backfillPiket memindahkan pelanggaran harian milik guru piket menjadi catatan
+// pelanggaran BK, supaya hanya ada satu sumber kebenaran dan datanya ikut
+// terhitung pada akumulasi poin. Jenis pelanggaran arsip diberi poin nol agar
+// akumulasi yang sudah berjalan tidak berubah mendadak, sekolah dapat
+// menyesuaikan poinnya sendiri kemudian.
+func backfillPiket(db *gorm.DB) error {
+	if !db.Migrator().HasTable("daily_violations") {
+		return nil
+	}
+
+	archiveType := model.ViolationType{Name: "Pelanggaran Harian Piket", Category: "arsip", Point: 0}
+	if err := db.Where("name = ?", archiveType.Name).FirstOrCreate(&archiveType).Error; err != nil {
+		return err
+	}
+
+	// academic_year_id sengaja dibiarkan kosong. Tanggal catatan lama dapat
+	// mundur jauh, jadi memaksakan tahun ajaran berjalan justru salah.
+	moved := db.Exec(`
+		INSERT INTO violation_records
+			(id, student_id, violation_type_id, class_id, major_id, description, date, reporter_name, follow_up_status, created_at, updated_at)
+		SELECT gen_random_uuid(), student_id, ?, class_id, major_id,
+		       NULLIF(CONCAT_WS(': ', NULLIF(category, ''), NULLIF(detail, '')), ''),
+		       date, COALESCE(officer, ''), 'open', NOW(), NOW()
+		FROM daily_violations`, archiveType.ID)
+	if moved.Error != nil {
+		return moved.Error
+	}
+
+	if err := db.Migrator().DropTable("daily_violations"); err != nil {
+		return err
+	}
+	log.Printf("migration: %d pelanggaran harian dipindahkan ke catatan pelanggaran BK", moved.RowsAffected)
+	return nil
 }
 
 // migrateAttendanceSessionIndexes membuat uniqueness berdasarkan tipe dan scope.
