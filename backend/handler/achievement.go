@@ -21,15 +21,17 @@ func NewAchievementHandler(db *gorm.DB) *AchievementHandler {
 	return &AchievementHandler{db: db}
 }
 
+// ClassID, MajorID, dan AcademicYearID diisi server dari siswa yang dipilih.
+// Point adalah poin positif yang mengurangi akumulasi poin pelanggaran.
 type achievementRequest struct {
 	StudentID uuid.UUID  `json:"student_id" binding:"required"`
-	ClassID   *uuid.UUID `json:"class_id"`
-	MajorID   *uuid.UUID `json:"major_id"`
 	Title     string     `json:"title" binding:"required"`
+	Field     string     `json:"field"`
 	Category  string     `json:"category"`
 	Level     string     `json:"level"`
 	Rank      string     `json:"rank"`
 	Organizer string     `json:"organizer"`
+	Point     int        `json:"point" binding:"min=0"`
 	Date      *time.Time `json:"date"`
 }
 
@@ -58,16 +60,24 @@ func (h *AchievementHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	classID, majorID, yearID, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item := model.Achievement{
-		StudentID: req.StudentID,
-		ClassID:   req.ClassID,
-		MajorID:   req.MajorID,
-		Title:     req.Title,
-		Category:  req.Category,
-		Level:     req.Level,
-		Rank:      req.Rank,
-		Organizer: req.Organizer,
-		Date:      req.Date,
+		StudentID:      req.StudentID,
+		ClassID:        classID,
+		MajorID:        majorID,
+		AcademicYearID: yearID,
+		Title:          req.Title,
+		Field:          req.Field,
+		Category:       req.Category,
+		Level:          req.Level,
+		Rank:           req.Rank,
+		Organizer:      req.Organizer,
+		Point:          req.Point,
+		Date:           req.Date,
 	}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan prestasi", nil)
@@ -92,14 +102,26 @@ func (h *AchievementHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Prestasi tidak ditemukan", nil)
 		return
 	}
+	classID, majorID, yearID, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
+	item.ClassID = classID
+	item.MajorID = majorID
+	// Tahun ajaran hanya diisi sekali supaya koreksi data tidak memindahkan
+	// catatan lama ke akumulasi poin tahun berjalan.
+	if item.AcademicYearID == nil {
+		item.AcademicYearID = yearID
+	}
 	item.Title = req.Title
+	item.Field = req.Field
 	item.Category = req.Category
 	item.Level = req.Level
 	item.Rank = req.Rank
 	item.Organizer = req.Organizer
+	item.Point = req.Point
 	item.Date = req.Date
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan prestasi", nil)

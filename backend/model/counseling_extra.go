@@ -36,16 +36,20 @@ func (h *HomeVisit) BeforeCreate(_ *gorm.DB) error {
 
 // Achievement adalah prestasi siswa (akademik atau non-akademik).
 type Achievement struct {
-	ID        uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
-	StudentID uuid.UUID  `gorm:"type:uuid;not null;index" json:"student_id"`
-	ClassID   *uuid.UUID `gorm:"type:uuid;index" json:"class_id,omitempty"`
-	MajorID   *uuid.UUID `gorm:"type:uuid;index" json:"major_id,omitempty"`
-	Title     string     `gorm:"size:150;not null" json:"title"`
-	Category  string     `gorm:"size:50" json:"category"`
-	Level     string     `gorm:"size:50" json:"level"`
-	Rank      string     `gorm:"size:50" json:"rank"`
-	Organizer string     `gorm:"size:120" json:"organizer"`
-	Date      *time.Time `json:"date,omitempty"`
+	ID             uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	StudentID      uuid.UUID  `gorm:"type:uuid;not null;index" json:"student_id"`
+	ClassID        *uuid.UUID `gorm:"type:uuid;index" json:"class_id,omitempty"`
+	MajorID        *uuid.UUID `gorm:"type:uuid;index" json:"major_id,omitempty"`
+	AcademicYearID *uuid.UUID `gorm:"type:uuid;index" json:"academic_year_id,omitempty"`
+	Title          string     `gorm:"size:150;not null" json:"title"`
+	Field          string     `gorm:"size:100" json:"field"`
+	Category       string     `gorm:"size:50" json:"category"`
+	Level          string     `gorm:"size:50" json:"level"`
+	Rank           string     `gorm:"size:50" json:"rank"`
+	Organizer      string     `gorm:"size:120" json:"organizer"`
+	// Point mengurangi akumulasi poin pelanggaran pada tahun ajaran yang sama.
+	Point int        `gorm:"not null;default:0" json:"point"`
+	Date  *time.Time `json:"date,omitempty"`
 
 	Student *Student `gorm:"foreignKey:StudentID" json:"student,omitempty"`
 	Class   *Class   `gorm:"foreignKey:ClassID" json:"class,omitempty"`

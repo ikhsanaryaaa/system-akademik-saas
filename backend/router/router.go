@@ -67,6 +67,8 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	studentCoachingHandler := handler.NewStudentCoachingHandler(db)
 	talentDevelopmentHandler := handler.NewTalentDevelopmentHandler(db)
 	studentActivityHandler := handler.NewStudentActivityHandler(db)
+	activityParticipantHandler := handler.NewActivityParticipantHandler(db)
+	sanctionLevelHandler := handler.NewSanctionLevelHandler(db)
 	violationTypeHandler := handler.NewViolationTypeHandler(db)
 	counselingAgendaHandler := handler.NewCounselingAgendaHandler(db)
 	violationRecordHandler := handler.NewViolationRecordHandler(db)
@@ -217,6 +219,13 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerKesiswaanCRUD(auth, "/talent-development", talentDevelopmentHandler.List, talentDevelopmentHandler.Create, talentDevelopmentHandler.Update, talentDevelopmentHandler.Delete)
 			registerKesiswaanCRUD(auth, "/student-activities", studentActivityHandler.List, studentActivityHandler.Create, studentActivityHandler.Update, studentActivityHandler.Delete)
 
+			auth.PUT("/admissions/:id/status", middleware.RequirePermission("kesiswaan.update"), admissionHandler.ChangeStatus)
+			auth.POST("/admissions/:id/convert", middleware.RequirePermission("kesiswaan.update"), admissionHandler.Convert)
+
+			auth.GET("/student-activities/:id/participants", middleware.RequirePermission("kesiswaan.read"), activityParticipantHandler.List)
+			auth.POST("/student-activities/:id/participants", middleware.RequirePermission("kesiswaan.create"), activityParticipantHandler.Create)
+			auth.DELETE("/student-activities/:id/participants/:participantId", middleware.RequirePermission("kesiswaan.delete"), activityParticipantHandler.Delete)
+
 			// Bimbingan Konseling.
 			registerBkCRUD(auth, "/violation-types", violationTypeHandler.List, violationTypeHandler.Create, violationTypeHandler.Update, violationTypeHandler.Delete)
 			registerBkCRUD(auth, "/counseling-agenda", counselingAgendaHandler.List, counselingAgendaHandler.Create, counselingAgendaHandler.Update, counselingAgendaHandler.Delete)
@@ -225,9 +234,11 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerBkCRUD(auth, "/home-visits", homeVisitHandler.List, homeVisitHandler.Create, homeVisitHandler.Update, homeVisitHandler.Delete)
 			registerBkCRUD(auth, "/achievements", achievementHandler.List, achievementHandler.Create, achievementHandler.Update, achievementHandler.Delete)
 			registerBkCRUD(auth, "/alumni", alumniHandler.List, alumniHandler.Create, alumniHandler.Update, alumniHandler.Delete)
+			registerBkCRUD(auth, "/sanction-levels", sanctionLevelHandler.List, sanctionLevelHandler.Create, sanctionLevelHandler.Update, sanctionLevelHandler.Delete)
 
 			auth.PUT("/violation-records/:id/follow-up", middleware.RequirePermission("bk.update"), violationRecordHandler.FollowUp)
-			auth.GET("/student-book", middleware.RequirePermission("bk.read"), studentBookHandler.Book)
+			// Buku Siswa dipakai bersama BK dan kesiswaan, cukup salah satu izin baca.
+			auth.GET("/student-book", middleware.RequirePermission("bk.read", "kesiswaan.read"), studentBookHandler.Book)
 
 			// Guru Piket.
 			registerPiketCRUD(auth, "/duty-schedules", dutyScheduleHandler.List, dutyScheduleHandler.Create, dutyScheduleHandler.Update, dutyScheduleHandler.Delete)

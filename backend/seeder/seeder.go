@@ -22,6 +22,9 @@ func Run(db *gorm.DB) error {
 	if err := seedAdministrator(db); err != nil {
 		return err
 	}
+	if err := seedSanctionLevels(db); err != nil {
+		return err
+	}
 	if os.Getenv("SEED_DUMMY") == "true" {
 		if err := seedDummy(db); err != nil {
 			return err
@@ -29,6 +32,27 @@ func Run(db *gorm.DB) error {
 		log.Println("seeder: data dummy akademik tersedia")
 	}
 	return nil
+}
+
+// seedSanctionLevels mengisi tahap sanksi awal supaya akumulasi poin langsung
+// berguna. Angkanya contoh dan wajib dapat diubah sekolah, karena itu seeder
+// hanya jalan saat tabel masih kosong agar penyesuaian tidak tertimpa.
+func seedSanctionLevels(db *gorm.DB) error {
+	var count int64
+	if err := db.Model(&model.SanctionLevel{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	levels := []model.SanctionLevel{
+		{MinPoint: 25, Name: "Teguran Lisan", Action: "Guru BK memberi teguran lisan dan mencatat hasil pembinaan"},
+		{MinPoint: 50, Name: "Panggilan Orang Tua", Action: "Wali kelas dan guru BK memanggil orang tua atau wali siswa"},
+		{MinPoint: 75, Name: "Surat Peringatan 1", Action: "Surat peringatan pertama disertai surat pernyataan siswa"},
+		{MinPoint: 100, Name: "Surat Peringatan 2", Action: "Surat peringatan kedua disertai perjanjian bermaterai"},
+		{MinPoint: 150, Name: "Skorsing", Action: "Skorsing sesuai keputusan rapat bersama kepala sekolah"},
+	}
+	return db.Create(&levels).Error
 }
 
 func seedPermissions(db *gorm.DB) error {

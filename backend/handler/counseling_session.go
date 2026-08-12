@@ -21,11 +21,12 @@ func NewCounselingSessionHandler(db *gorm.DB) *CounselingSessionHandler {
 	return &CounselingSessionHandler{db: db}
 }
 
+// Field adalah bidang layanan menurut POP BK. ClassID dan MajorID diisi server
+// dari siswa yang dipilih.
 type counselingSessionRequest struct {
 	StudentID   uuid.UUID  `json:"student_id" binding:"required"`
-	ClassID     *uuid.UUID `json:"class_id"`
-	MajorID     *uuid.UUID `json:"major_id"`
-	Type        string     `json:"type"`
+	Type        string     `json:"type" binding:"omitempty,oneof=individu kelompok klasikal konsultasi mediasi"`
+	Field       string     `json:"field" binding:"omitempty,oneof=pribadi sosial belajar karier"`
 	Topic       string     `json:"topic" binding:"required"`
 	Summary     string     `json:"summary"`
 	Result      string     `json:"result"`
@@ -58,11 +59,17 @@ func (h *CounselingSessionHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item := model.CounselingSession{
 		StudentID:   req.StudentID,
-		ClassID:     req.ClassID,
-		MajorID:     req.MajorID,
+		ClassID:     classID,
+		MajorID:     majorID,
 		Type:        req.Type,
+		Field:       req.Field,
 		Topic:       req.Topic,
 		Summary:     req.Summary,
 		Result:      req.Result,
@@ -92,10 +99,16 @@ func (h *CounselingSessionHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Sesi konseling tidak ditemukan", nil)
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
+	item.ClassID = classID
+	item.MajorID = majorID
 	item.Type = req.Type
+	item.Field = req.Field
 	item.Topic = req.Topic
 	item.Summary = req.Summary
 	item.Result = req.Result
@@ -131,10 +144,9 @@ func NewHomeVisitHandler(db *gorm.DB) *HomeVisitHandler {
 	return &HomeVisitHandler{db: db}
 }
 
+// ClassID dan MajorID diisi server dari siswa yang dipilih.
 type homeVisitRequest struct {
 	StudentID uuid.UUID  `json:"student_id" binding:"required"`
-	ClassID   *uuid.UUID `json:"class_id"`
-	MajorID   *uuid.UUID `json:"major_id"`
 	Purpose   string     `json:"purpose" binding:"required"`
 	Address   string     `json:"address"`
 	Result    string     `json:"result"`
@@ -167,10 +179,15 @@ func (h *HomeVisitHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item := model.HomeVisit{
 		StudentID: req.StudentID,
-		ClassID:   req.ClassID,
-		MajorID:   req.MajorID,
+		ClassID:   classID,
+		MajorID:   majorID,
 		Purpose:   req.Purpose,
 		Address:   req.Address,
 		Result:    req.Result,
@@ -200,9 +217,14 @@ func (h *HomeVisitHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Home visit tidak ditemukan", nil)
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
+	item.ClassID = classID
+	item.MajorID = majorID
 	item.Purpose = req.Purpose
 	item.Address = req.Address
 	item.Result = req.Result

@@ -29,7 +29,6 @@ type admissionRequest struct {
 	Email          string     `json:"email"`
 	Address        string     `json:"address"`
 	MajorID        *uuid.UUID `json:"major_id"`
-	Status         string     `json:"status" binding:"omitempty,oneof=pending accepted rejected"`
 	Note           string     `json:"note"`
 	RegisteredAt   *time.Time `json:"registered_at"`
 	AcademicYearID *uuid.UUID `json:"academic_year_id"`
@@ -60,10 +59,7 @@ func (h *AdmissionHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
-	status := req.Status
-	if status == "" {
-		status = "pending"
-	}
+	// Status awal selalu pending. Perubahannya lewat endpoint status tersendiri.
 	item := model.Admission{
 		Name:           req.Name,
 		OriginSchool:   req.OriginSchool,
@@ -72,7 +68,7 @@ func (h *AdmissionHandler) Create(c *gin.Context) {
 		Email:          req.Email,
 		Address:        req.Address,
 		MajorID:        req.MajorID,
-		Status:         status,
+		Status:         "pending",
 		Note:           req.Note,
 		RegisteredAt:   req.RegisteredAt,
 		AcademicYearID: req.AcademicYearID,
@@ -107,9 +103,6 @@ func (h *AdmissionHandler) Update(c *gin.Context) {
 	item.Email = req.Email
 	item.Address = req.Address
 	item.MajorID = req.MajorID
-	if req.Status != "" {
-		item.Status = req.Status
-	}
 	item.Note = req.Note
 	item.RegisteredAt = req.RegisteredAt
 	item.AcademicYearID = req.AcademicYearID
@@ -133,6 +126,115 @@ func (h *AdmissionHandler) Delete(c *gin.Context) {
 	response.OK(c, "Pendaftar PPDB dihapus", nil)
 }
 
+type admissionStatusRequest struct {
+	Status string `json:"status" binding:"required,oneof=pending accepted rejected"`
+	Note   string `json:"note"`
+}
+
+// ChangeStatus mengubah status pendaftar sebagai aksi tersendiri, terpisah dari
+// modal edit, supaya keputusan penerimaan tidak tercampur dengan koreksi data.
+func (h *AdmissionHandler) ChangeStatus(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "ID tidak valid", nil)
+		return
+	}
+	var req admissionStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
+		return
+	}
+	var item model.Admission
+	if err := h.db.First(&item, "id = ?", id).Error; err != nil {
+		response.Error(c, http.StatusNotFound, "Pendaftar PPDB tidak ditemukan", nil)
+		return
+	}
+	if item.StudentID != nil && req.Status != "accepted" {
+		response.Error(c, http.StatusConflict, "Pendaftar sudah dikonversi menjadi siswa, status tidak dapat diubah", nil)
+		return
+	}
+	item.Status = req.Status
+	if req.Note != "" {
+		item.Note = req.Note
+	}
+	if err := h.db.Save(&item).Error; err != nil {
+		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan status pendaftar", nil)
+		return
+	}
+	response.OK(c, "Status pendaftar diperbarui", item)
+}
+
+// admissionConvertRequest berisi data yang tidak dimiliki pendaftar.
+// NIS diisi manual karena formatnya baru ditentukan pada tahap Setting Sekolah.
+type admissionConvertRequest struct {
+	NIS            string     `json:"nis" binding:"required"`
+	NISN           string     `json:"nisn"`
+	ClassID        *uuid.UUID `json:"class_id"`
+	AcademicYearID *uuid.UUID `json:"academic_year_id"`
+	BirthPlace     string     `json:"birth_place"`
+	BirthDate      *time.Time `json:"birth_date"`
+}
+
+// Convert membuat siswa master data dari pendaftar berstatus accepted.
+// StudentID pada pendaftar menjadi penanda supaya konversi tidak dapat diulang.
+func (h *AdmissionHandler) Convert(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "ID tidak valid", nil)
+		return
+	}
+	var req admissionConvertRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
+		return
+	}
+
+	var item model.Admission
+	if err := h.db.First(&item, "id = ?", id).Error; err != nil {
+		response.Error(c, http.StatusNotFound, "Pendaftar PPDB tidak ditemukan", nil)
+		return
+	}
+	if item.Status != "accepted" {
+		response.Error(c, http.StatusBadRequest, "Hanya pendaftar berstatus accepted yang dapat dikonversi", nil)
+		return
+	}
+	if item.StudentID != nil {
+		response.Error(c, http.StatusConflict, "Pendaftar sudah pernah dikonversi menjadi siswa", nil)
+		return
+	}
+
+	yearID := req.AcademicYearID
+	if yearID == nil {
+		yearID = item.AcademicYearID
+	}
+	if yearID == nil {
+		yearID = activeAcademicYearID(h.db)
+	}
+	student := model.Student{
+		Name:           item.Name,
+		NIS:            req.NIS,
+		NISN:           req.NISN,
+		Gender:         item.Gender,
+		BirthPlace:     req.BirthPlace,
+		BirthDate:      req.BirthDate,
+		ClassID:        req.ClassID,
+		MajorID:        item.MajorID,
+		AcademicYearID: yearID,
+	}
+
+	err = h.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&student).Error; err != nil {
+			return err
+		}
+		return tx.Model(&item).Update("student_id", student.ID).Error
+	})
+	if err != nil {
+		response.Error(c, http.StatusConflict, "Gagal mengonversi pendaftar, pastikan NIS dan NISN belum dipakai siswa lain", nil)
+		return
+	}
+	response.Created(c, "Pendaftar dikonversi menjadi siswa", student)
+}
+
 // ---- StudentCoaching (Pembinaan) ----
 
 type StudentCoachingHandler struct {
@@ -143,10 +245,10 @@ func NewStudentCoachingHandler(db *gorm.DB) *StudentCoachingHandler {
 	return &StudentCoachingHandler{db: db}
 }
 
+// ClassID dan MajorID tidak diterima dari client, nilainya diambil server dari
+// siswa yang dipilih supaya tidak dapat bertentangan.
 type studentCoachingRequest struct {
 	StudentID uuid.UUID  `json:"student_id" binding:"required"`
-	ClassID   *uuid.UUID `json:"class_id"`
-	MajorID   *uuid.UUID `json:"major_id"`
 	Topic     string     `json:"topic" binding:"required"`
 	Detail    string     `json:"detail"`
 	CoachName string     `json:"coach_name"`
@@ -178,10 +280,15 @@ func (h *StudentCoachingHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item := model.StudentCoaching{
 		StudentID: req.StudentID,
-		ClassID:   req.ClassID,
-		MajorID:   req.MajorID,
+		ClassID:   classID,
+		MajorID:   majorID,
 		Topic:     req.Topic,
 		Detail:    req.Detail,
 		CoachName: req.CoachName,
@@ -210,9 +317,14 @@ func (h *StudentCoachingHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Pembinaan tidak ditemukan", nil)
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
+	item.ClassID = classID
+	item.MajorID = majorID
 	item.Topic = req.Topic
 	item.Detail = req.Detail
 	item.CoachName = req.CoachName
@@ -247,11 +359,10 @@ func NewTalentDevelopmentHandler(db *gorm.DB) *TalentDevelopmentHandler {
 	return &TalentDevelopmentHandler{db: db}
 }
 
+// ClassID dan MajorID diisi server dari siswa yang dipilih, sama seperti pembinaan.
 type talentDevelopmentRequest struct {
-	StudentID uuid.UUID  `json:"student_id" binding:"required"`
-	ClassID   *uuid.UUID `json:"class_id"`
-	MajorID   *uuid.UUID `json:"major_id"`
-	Field     string     `json:"field" binding:"required"`
+	StudentID uuid.UUID `json:"student_id" binding:"required"`
+	Field     string    `json:"field" binding:"required"`
 	Category  string     `json:"category"`
 	Detail    string     `json:"detail"`
 	Mentor    string     `json:"mentor"`
@@ -282,10 +393,15 @@ func (h *TalentDevelopmentHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item := model.TalentDevelopment{
 		StudentID: req.StudentID,
-		ClassID:   req.ClassID,
-		MajorID:   req.MajorID,
+		ClassID:   classID,
+		MajorID:   majorID,
 		Field:     req.Field,
 		Category:  req.Category,
 		Detail:    req.Detail,
@@ -314,9 +430,14 @@ func (h *TalentDevelopmentHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Pengembangan bakat tidak ditemukan", nil)
 		return
 	}
+	classID, majorID, _, err := studentContext(h.db, req.StudentID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
+		return
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
+	item.ClassID = classID
+	item.MajorID = majorID
 	item.Field = req.Field
 	item.Category = req.Category
 	item.Detail = req.Detail
@@ -354,6 +475,7 @@ func NewStudentActivityHandler(db *gorm.DB) *StudentActivityHandler {
 type studentActivityRequest struct {
 	Name        string     `json:"name" binding:"required"`
 	Type        string     `json:"type"`
+	Field       string     `json:"field"`
 	Description string     `json:"description"`
 	Organizer   string     `json:"organizer"`
 	Location    string     `json:"location"`
@@ -383,6 +505,7 @@ func (h *StudentActivityHandler) Create(c *gin.Context) {
 	item := model.StudentActivity{
 		Name:        req.Name,
 		Type:        req.Type,
+		Field:       req.Field,
 		Description: req.Description,
 		Organizer:   req.Organizer,
 		Location:    req.Location,
@@ -414,6 +537,7 @@ func (h *StudentActivityHandler) Update(c *gin.Context) {
 	}
 	item.Name = req.Name
 	item.Type = req.Type
+	item.Field = req.Field
 	item.Description = req.Description
 	item.Organizer = req.Organizer
 	item.Location = req.Location

@@ -22,6 +22,9 @@ type Admission struct {
 	Note           string     `gorm:"type:text" json:"note"`
 	RegisteredAt   *time.Time `json:"registered_at,omitempty"`
 	AcademicYearID *uuid.UUID `gorm:"type:uuid;index" json:"academic_year_id,omitempty"`
+	// StudentID terisi setelah pendaftar dikonversi jadi siswa master data.
+	// Nilainya sekaligus menjadi penanda supaya konversi tidak dapat diulang.
+	StudentID *uuid.UUID `gorm:"type:uuid;index" json:"student_id,omitempty"`
 
 	Major *Major `gorm:"foreignKey:MajorID" json:"major,omitempty"`
 
@@ -93,6 +96,7 @@ type StudentActivity struct {
 	ID          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
 	Name        string     `gorm:"size:150;not null" json:"name"`
 	Type        string     `gorm:"size:50" json:"type"`
+	Field       string     `gorm:"size:100" json:"field"`
 	Description string     `gorm:"type:text" json:"description"`
 	Organizer   string     `gorm:"size:120" json:"organizer"`
 	Location    string     `gorm:"size:150" json:"location"`
@@ -106,6 +110,29 @@ type StudentActivity struct {
 func (s *StudentActivity) BeforeCreate(_ *gorm.DB) error {
 	if s.ID == uuid.Nil {
 		s.ID = uuid.New()
+	}
+	return nil
+}
+
+// ActivityParticipant menghubungkan kegiatan kesiswaan dengan siswa yang mengikutinya.
+// Satu siswa hanya boleh terdaftar sekali pada satu kegiatan, dijaga unique index gabungan.
+type ActivityParticipant struct {
+	ID         uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ActivityID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_activity_student" json:"activity_id"`
+	StudentID  uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_activity_student" json:"student_id"`
+	Role       string    `gorm:"size:30;not null;default:'anggota'" json:"role"`
+	Note       string    `gorm:"type:text" json:"note"`
+
+	Activity *StudentActivity `gorm:"foreignKey:ActivityID" json:"activity,omitempty"`
+	Student  *Student         `gorm:"foreignKey:StudentID" json:"student,omitempty"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (a *ActivityParticipant) BeforeCreate(_ *gorm.DB) error {
+	if a.ID == uuid.Nil {
+		a.ID = uuid.New()
 	}
 	return nil
 }

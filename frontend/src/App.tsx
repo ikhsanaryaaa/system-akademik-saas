@@ -42,6 +42,7 @@ import HomeVisitsPage from "./pages/bk/HomeVisitsPage";
 import AchievementsPage from "./pages/bk/AchievementsPage";
 import AlumniPage from "./pages/bk/AlumniPage";
 import StudentBookPage from "./pages/bk/StudentBookPage";
+import SanctionLevelsPage from "./pages/bk/SanctionLevelsPage";
 import DutySchedulesPage from "./pages/piket/DutySchedulesPage";
 import DutyLogsPage from "./pages/piket/DutyLogsPage";
 import GuestBookPage from "./pages/piket/GuestBookPage";
@@ -265,6 +266,7 @@ export default function App() {
       <Route path="/bk/home-visits" element={bkRoute(<HomeVisitsPage />)} />
       <Route path="/bk/achievements" element={bkRoute(<AchievementsPage />)} />
       <Route path="/bk/alumni" element={bkRoute(<AlumniPage />)} />
+      <Route path="/bk/sanction-levels" element={bkRoute(<SanctionLevelsPage />)} />
       <Route path="/bk/student-book" element={bkRoute(<StudentBookPage />)} />
 
       <Route path="/piket/schedules" element={piketRoute(<DutySchedulesPage />)} />

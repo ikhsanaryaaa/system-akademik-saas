@@ -17,12 +17,16 @@ export type FieldType =
   | "teacher"
   | "ref";
 
+// Opsi select boleh berupa string polos, atau pasangan value dan label bila
+// nilai yang disimpan berbeda dari teks yang ditampilkan.
+export type CrudOption = string | { value: string; label: string };
+
 export interface CrudField {
   key: string;
   label: string;
   type: FieldType;
   required?: boolean;
-  options?: string[];
+  options?: CrudOption[];
   fullWidth?: boolean;
   // refPath dan refLabel dipakai untuk type "ref": endpoint daftar dan field label opsi.
   refPath?: string;
@@ -44,6 +48,9 @@ export interface CrudModuleConfig {
   columns: CrudColumn[];
   filters?: ("class" | "major")[];
   addLabel?: string;
+  // rowActions menambah aksi khusus modul di kolom Aksi, misalnya ubah status
+  // atau panel peserta, tanpa mencampurnya ke dalam modal edit.
+  rowActions?: (row: Record<string, unknown>, reload: () => void) => ReactNode;
 }
 
 type FormState = { open: boolean; id: string | null; error: string; values: Record<string, unknown> };
@@ -78,7 +85,7 @@ function reducer(state: FormState, action: FormAction): FormState {
 // yang mendukung field select serta relasi siswa, kelas, dan jurusan.
 export default function CrudModulePage({ config }: { config: CrudModuleConfig }) {
   const { can } = useAuth();
-  const { title, path, permPrefix, fields, columns, filters = [], addLabel } = config;
+  const { title, path, permPrefix, fields, columns, filters = [], addLabel, rowActions } = config;
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -181,7 +188,8 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
   const canWrite = can(`${permPrefix}.create`);
   const canUpdate = can(`${permPrefix}.update`);
   const canDelete = can(`${permPrefix}.delete`);
-  const colCount = columns.length + (canUpdate || canDelete ? 1 : 0);
+  const showActions = canUpdate || canDelete || Boolean(rowActions);
+  const colCount = columns.length + (showActions ? 1 : 0);
 
   return (
     <div>
@@ -252,7 +260,7 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
                   {col.label}
                 </th>
               ))}
-              {(canUpdate || canDelete) && <th className="px-4 py-3 text-right">Aksi</th>}
+              {showActions && <th className="px-4 py-3 text-right">Aksi</th>}
             </tr>
           </thead>
           <tbody>
@@ -276,8 +284,9 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
                       {col.render ? col.render(row) : String(row[col.key] ?? "-")}
                     </td>
                   ))}
-                  {(canUpdate || canDelete) && (
+                  {showActions && (
                     <td className="px-4 py-3 text-right">
+                      {rowActions?.(row, load)}
                       {canUpdate && (
                         <button
                           type="button"
@@ -384,11 +393,14 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
       return (
         <select id={id} aria-label={f.label} value={String(value ?? "")} onChange={(e) => set(e.target.value)} required={f.required} className={inputClass}>
           <option value="">Pilih</option>
-          {(f.options ?? []).map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
+          {(f.options ?? []).map((o) => {
+            const opt = typeof o === "string" ? { value: o, label: o } : o;
+            return (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            );
+          })}
         </select>
       );
     }
