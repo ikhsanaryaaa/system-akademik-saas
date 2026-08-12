@@ -107,9 +107,11 @@ func (h *AchievementHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
 		return
 	}
+	if item.StudentID != req.StudentID {
+		item.ClassID = classID
+		item.MajorID = majorID
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = classID
-	item.MajorID = majorID
 	// Tahun ajaran hanya diisi sekali supaya koreksi data tidak memindahkan
 	// catatan lama ke akumulasi poin tahun berjalan.
 	if item.AcademicYearID == nil {

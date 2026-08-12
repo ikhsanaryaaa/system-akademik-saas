@@ -94,20 +94,24 @@ function StatusDialog({ row, onClose }: { row: Admission; onClose: (saved: boole
   const [status, setStatus] = useState(row.status);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     setError("");
+    setSaving(true);
     try {
       await http.put(`/admissions/${row.id}/status`, { status, note });
       onClose(true);
     } catch {
       setError("Gagal mengubah status pendaftar");
+      setSaving(false);
     }
   }
 
   return (
-    <Dialog title="Ubah Status Pendaftar" subtitle={row.name} onClose={onClose} onSubmit={handleSubmit} error={error}>
+    <Dialog title="Ubah Status Pendaftar" subtitle={row.name} onClose={onClose} onSubmit={handleSubmit} error={error} saving={saving}>
       <div>
         <label htmlFor="ad-status" className="block text-sm font-medium text-body">
           Status
@@ -149,6 +153,7 @@ function ConvertDialog({ row, onClose }: { row: Admission; onClose: (saved: bool
   const [nisn, setNisn] = useState("");
   const [classId, setClassId] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     paginatedList<ClassRow>("/classes", { per_page: 100 }).then((res) => setClasses(res.items));
@@ -156,17 +161,20 @@ function ConvertDialog({ row, onClose }: { row: Admission; onClose: (saved: bool
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     setError("");
+    setSaving(true);
     try {
       await http.post(`/admissions/${row.id}/convert`, { nis, nisn, class_id: classId || null });
       onClose(true);
     } catch {
       setError("Gagal mengonversi, pastikan NIS dan NISN belum dipakai siswa lain");
+      setSaving(false);
     }
   }
 
   return (
-    <Dialog title="Jadikan Siswa" subtitle={row.name} onClose={onClose} onSubmit={handleSubmit} error={error}>
+    <Dialog title="Jadikan Siswa" subtitle={row.name} onClose={onClose} onSubmit={handleSubmit} error={error} saving={saving}>
       <div>
         <label htmlFor="cv-nis" className="block text-sm font-medium text-body">
           NIS
@@ -219,6 +227,7 @@ function Dialog({
   title,
   subtitle,
   error,
+  saving,
   onClose,
   onSubmit,
   children,
@@ -226,6 +235,7 @@ function Dialog({
   title: string;
   subtitle: string;
   error: string;
+  saving: boolean;
   onClose: (saved: boolean) => void;
   onSubmit: (e: FormEvent) => void;
   children: ReactNode;
@@ -247,7 +257,8 @@ function Dialog({
           </button>
           <button
             type="submit"
-            className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
+            disabled={saving}
+            className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
           >
             Simpan
           </button>

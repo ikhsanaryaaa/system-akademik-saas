@@ -63,6 +63,9 @@ function ParticipantsModal({ activity, onClose }: { activity: OpenActivity; onCl
   const [role, setRole] = useState("anggota");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  // saving menahan submit dan hapus berikutnya selama request masih berjalan,
+  // supaya klik ganda tidak mengirim dua permintaan sekaligus.
+  const [saving, setSaving] = useState(false);
 
   const path = `/student-activities/${activity.id}/participants`;
 
@@ -83,20 +86,30 @@ function ParticipantsModal({ activity, onClose }: { activity: OpenActivity; onCl
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     setError("");
+    setSaving(true);
     try {
       await http.post(path, { student_id: studentId, role });
       setStudentId("");
-      load();
+      await load();
     } catch {
       setError("Gagal menambahkan peserta, siswa mungkin sudah terdaftar");
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleRemove(id: string) {
+    if (saving) return;
     if (!confirm("Hapus peserta ini?")) return;
-    await http.delete(`${path}/${id}`);
-    load();
+    setSaving(true);
+    try {
+      await http.delete(`${path}/${id}`);
+      await load();
+    } finally {
+      setSaving(false);
+    }
   }
 
   const canAdd = can("kesiswaan.create");
@@ -153,7 +166,8 @@ function ParticipantsModal({ activity, onClose }: { activity: OpenActivity; onCl
             </div>
             <button
               type="submit"
-              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
+              disabled={saving}
+              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             >
               Tambah
             </button>
@@ -193,7 +207,12 @@ function ParticipantsModal({ activity, onClose }: { activity: OpenActivity; onCl
                     <td className="px-4 py-3">{p.role}</td>
                     {canRemove && (
                       <td className="px-4 py-3 text-right">
-                        <button type="button" onClick={() => handleRemove(p.id)} className="text-danger hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(p.id)}
+                          disabled={saving}
+                          className="text-danger hover:underline disabled:opacity-50"
+                        >
                           Hapus
                         </button>
                       </td>

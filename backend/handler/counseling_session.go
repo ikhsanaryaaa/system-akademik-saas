@@ -104,9 +104,11 @@ func (h *CounselingSessionHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
 		return
 	}
+	if item.StudentID != req.StudentID {
+		item.ClassID = classID
+		item.MajorID = majorID
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = classID
-	item.MajorID = majorID
 	item.Type = req.Type
 	item.Field = req.Field
 	item.Topic = req.Topic
@@ -222,9 +224,11 @@ func (h *HomeVisitHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
 		return
 	}
+	if item.StudentID != req.StudentID {
+		item.ClassID = classID
+		item.MajorID = majorID
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = classID
-	item.MajorID = majorID
 	item.Purpose = req.Purpose
 	item.Address = req.Address
 	item.Result = req.Result

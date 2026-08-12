@@ -84,7 +84,9 @@ export default function StudentsPage() {
       nis: form.nis,
       nisn: form.nisn,
       gender: form.gender,
-      class_id: form.class_id || null,
+      birth_place: form.birth_place ?? "",
+      birth_date: form.birth_date ? new Date(form.birth_date).toISOString() : null,
+      address: form.address ?? "",
       photo_url: form.photo_url,
     };
     try {
@@ -280,22 +282,40 @@ export default function StudentsPage() {
                   })}
                 </div>
               </fieldset>
-              <div>
-                <label htmlFor="student-class" className="block text-sm font-medium text-body">Kelas</label>
-                <select
-                  id="student-class"
-                  value={form.class_id ?? ""}
-                  onChange={(e) => setForm({ ...form, class_id: e.target.value })}
-                  className="mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm"
-                >
-                  <option value="">Belum ada kelas</option>
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="student-birth-place" className="block text-sm font-medium text-body">Tempat Lahir</label>
+                  <input
+                    id="student-birth-place"
+                    value={form.birth_place ?? ""}
+                    onChange={(e) => setForm({ ...form, birth_place: e.target.value })}
+                    className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="student-birth-date" className="block text-sm font-medium text-body">Tanggal Lahir</label>
+                  <input
+                    id="student-birth-date"
+                    type="date"
+                    value={(form.birth_date ?? "").slice(0, 10)}
+                    onChange={(e) => setForm({ ...form, birth_date: e.target.value })}
+                    className="mt-1 h-[38px] w-full rounded-md border border-hairline bg-canvas px-3 text-sm text-ink outline-none focus:border-primary"
+                  />
+                </div>
               </div>
+              <div>
+                <label htmlFor="student-address" className="block text-sm font-medium text-body">Alamat</label>
+                <textarea
+                  id="student-address"
+                  value={form.address ?? ""}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  rows={2}
+                  className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+                />
+              </div>
+              <p className="text-sm text-muted">
+                Kelas dan jurusan diatur dari halaman Kelas dan Rombel, bukan dari sini.
+              </p>
               {error && <p className="text-sm text-danger">{error}</p>}
             </div>
             <div className="mt-6 flex justify-end gap-3">

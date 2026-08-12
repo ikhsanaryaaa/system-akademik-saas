@@ -19,17 +19,17 @@ func NewStudentHandler(db *gorm.DB) *StudentHandler {
 	return &StudentHandler{db: db}
 }
 
+// studentRequest hanya memuat data identitas. Kelas, jurusan, dan tahun ajaran
+// tidak diterima dari sini karena ditetapkan lewat penempatan di Kelas dan Rombel.
 type studentRequest struct {
-	Name           string     `json:"name" binding:"required"`
-	NIS            string     `json:"nis"`
-	NISN           string     `json:"nisn"`
-	Gender         string     `json:"gender" binding:"omitempty,oneof=L P"`
-	BirthPlace     string     `json:"birth_place"`
-	BirthDate      *time.Time `json:"birth_date"`
-	ClassID        *uuid.UUID `json:"class_id"`
-	MajorID        *uuid.UUID `json:"major_id"`
-	AcademicYearID *uuid.UUID `json:"academic_year_id"`
-	PhotoURL       string     `json:"photo_url"`
+	Name       string     `json:"name" binding:"required"`
+	NIS        string     `json:"nis"`
+	NISN       string     `json:"nisn"`
+	Gender     string     `json:"gender" binding:"omitempty,oneof=L P"`
+	BirthPlace string     `json:"birth_place"`
+	BirthDate  *time.Time `json:"birth_date"`
+	Address    string     `json:"address"`
+	PhotoURL   string     `json:"photo_url"`
 }
 
 // List mendukung filter per class_id, major_id, academic_year_id, pencarian nama, plus pagination.
@@ -74,16 +74,14 @@ func (h *StudentHandler) Create(c *gin.Context) {
 		return
 	}
 	item := model.Student{
-		Name:           req.Name,
-		NIS:            req.NIS,
-		NISN:           req.NISN,
-		Gender:         req.Gender,
-		BirthPlace:     req.BirthPlace,
-		BirthDate:      req.BirthDate,
-		ClassID:        req.ClassID,
-		MajorID:        req.MajorID,
-		AcademicYearID: req.AcademicYearID,
-		PhotoURL:       req.PhotoURL,
+		Name:       req.Name,
+		NIS:        req.NIS,
+		NISN:       req.NISN,
+		Gender:     req.Gender,
+		BirthPlace: req.BirthPlace,
+		BirthDate:  req.BirthDate,
+		Address:    req.Address,
+		PhotoURL:   req.PhotoURL,
 	}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan siswa, pastikan NIS dan NISN unik", nil)
@@ -114,9 +112,7 @@ func (h *StudentHandler) Update(c *gin.Context) {
 	item.Gender = req.Gender
 	item.BirthPlace = req.BirthPlace
 	item.BirthDate = req.BirthDate
-	item.ClassID = req.ClassID
-	item.MajorID = req.MajorID
-	item.AcademicYearID = req.AcademicYearID
+	item.Address = req.Address
 	item.PhotoURL = req.PhotoURL
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan siswa", nil)

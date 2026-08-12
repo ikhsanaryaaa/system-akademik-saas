@@ -87,7 +87,7 @@ const groups: MenuGroup[] = [
     icon: Database,
     items: [
       { label: "Akademik", to: "/master/academic", icon: CalendarRange, permission: "master.read" },
-      { label: "Kelas", to: "/master/classes", icon: School, permission: "master.read" },
+      { label: "Kelas dan Rombel", to: "/master/classes", icon: School, permission: "master.read" },
       { label: "Siswa", to: "/master/students", icon: GraduationCap, permission: "master.read" },
       { label: "Pendidik", to: "/master/teachers", icon: UserCog, permission: "master.read" },
       { label: "Tenaga Non-Kependidikan", to: "/master/staff", icon: Users, permission: "master.read" },

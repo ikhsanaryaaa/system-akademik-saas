@@ -17,6 +17,9 @@ type Student struct {
 	Gender         string     `gorm:"size:10" json:"gender"`
 	BirthPlace     string     `gorm:"size:100" json:"birth_place"`
 	BirthDate      *time.Time `json:"birth_date,omitempty"`
+	Address        string     `gorm:"type:text" json:"address"`
+	// ClassID, MajorID, dan AcademicYearID ditetapkan lewat penempatan kelas di
+	// Kelas dan Rombel, bukan dari form siswa, supaya ketiganya selalu sejalan.
 	ClassID        *uuid.UUID `gorm:"type:uuid;index" json:"class_id,omitempty"`
 	MajorID        *uuid.UUID `gorm:"type:uuid;index" json:"major_id,omitempty"`
 	AcademicYearID *uuid.UUID `gorm:"type:uuid;index" json:"academic_year_id,omitempty"`
