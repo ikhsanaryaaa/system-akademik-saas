@@ -6,8 +6,8 @@ const config: CrudModuleConfig = {
   path: "/duty-logs",
   permPrefix: "piket",
   addLabel: "Tambah Catatan",
+  // Petugas tidak diisi dari form, server mengambilnya dari jadwal piket.
   fields: [
-    { key: "teacher_id", label: "Petugas Piket", type: "teacher" },
     { key: "date", label: "Tanggal", type: "date" },
     { key: "incident", label: "Kejadian", type: "textarea" },
     { key: "action", label: "Tindakan", type: "textarea" },

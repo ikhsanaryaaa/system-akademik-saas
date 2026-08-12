@@ -151,12 +151,13 @@ const groups: MenuGroup[] = [
     label: "Guru Piket",
     icon: CalendarClock,
     items: [
+      { label: "Piket Hari Ini", to: "/piket/today", icon: MonitorCheck, permission: "piket.read" },
       { label: "Jadwal Piket", to: "/piket/schedules", icon: CalendarClock, permission: "piket.read" },
       { label: "Buku Piket", to: "/piket/logs", icon: ClipboardList, permission: "piket.read" },
       { label: "Buku Tamu", to: "/piket/guest-book", icon: BookUser, permission: "piket.read" },
-      { label: "Pelanggaran Harian", to: "/piket/daily-violations", icon: AlertTriangle, permission: "piket.read" },
       { label: "Keterlambatan", to: "/piket/lateness", icon: Clock4, permission: "piket.read" },
       { label: "Izin Keluar", to: "/piket/leave-permits", icon: FileText, permission: "piket.read" },
+      { label: "Laporan Piket", to: "/piket/report", icon: FileBarChart, permission: "piket.read" },
     ],
   },
   {

@@ -21,9 +21,11 @@ func NewDutyScheduleHandler(db *gorm.DB) *DutyScheduleHandler {
 	return &DutyScheduleHandler{db: db}
 }
 
+// Date kosong berarti jadwal pekanan pada hari tersebut. Date terisi berarti
+// penugasan satu tanggal, yang menang atas jadwal pekanan.
 type dutyScheduleRequest struct {
 	TeacherID uuid.UUID  `json:"teacher_id" binding:"required"`
-	Day       string     `json:"day" binding:"required"`
+	Day       string     `json:"day" binding:"required,oneof=senin selasa rabu kamis jumat sabtu minggu"`
 	Date      *time.Time `json:"date"`
 	Note      string     `json:"note"`
 }
@@ -52,7 +54,7 @@ func (h *DutyScheduleHandler) Create(c *gin.Context) {
 	}
 	item := model.DutySchedule{TeacherID: req.TeacherID, Day: req.Day, Date: req.Date, Note: req.Note}
 	if err := h.db.Create(&item).Error; err != nil {
-		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan jadwal piket", nil)
+		response.Error(c, http.StatusConflict, "Gagal menyimpan jadwal piket, guru ini sudah punya jadwal pada tanggal tersebut", nil)
 		return
 	}
 	response.Created(c, "Jadwal piket dibuat", item)
@@ -108,11 +110,11 @@ func NewDutyLogHandler(db *gorm.DB) *DutyLogHandler {
 	return &DutyLogHandler{db: db}
 }
 
+// TeacherID diisi server dari jadwal piket pada tanggal itu, tidak dari form.
 type dutyLogRequest struct {
-	TeacherID *uuid.UUID `json:"teacher_id"`
-	Date      *time.Time `json:"date"`
-	Incident  string     `json:"incident"`
-	Action    string     `json:"action"`
+	Date     *time.Time `json:"date"`
+	Incident string     `json:"incident"`
+	Action   string     `json:"action"`
 }
 
 func (h *DutyLogHandler) List(c *gin.Context) {
@@ -130,7 +132,8 @@ func (h *DutyLogHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
-	item := model.DutyLog{TeacherID: req.TeacherID, Date: req.Date, Incident: req.Incident, Action: req.Action}
+	date := orNow(req.Date)
+	item := model.DutyLog{TeacherID: dutyOfficerID(h.db, date), Date: &date, Incident: req.Incident, Action: req.Action}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan buku piket", nil)
 		return
@@ -154,8 +157,9 @@ func (h *DutyLogHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusNotFound, "Buku piket tidak ditemukan", nil)
 		return
 	}
-	item.TeacherID = req.TeacherID
-	item.Date = req.Date
+	date := orNow(req.Date)
+	item.TeacherID = dutyOfficerID(h.db, date)
+	item.Date = &date
 	item.Incident = req.Incident
 	item.Action = req.Action
 	if err := h.db.Save(&item).Error; err != nil {
@@ -188,13 +192,13 @@ func NewGuestBookHandler(db *gorm.DB) *GuestBookHandler {
 	return &GuestBookHandler{db: db}
 }
 
+// CheckOutTime tidak diterima dari form, diisi lewat aksi pencatatan keluar.
 type guestBookRequest struct {
-	Name         string     `json:"name" binding:"required"`
-	Institution  string     `json:"institution"`
-	Purpose      string     `json:"purpose"`
-	Phone        string     `json:"phone"`
-	CheckInTime  *time.Time `json:"check_in_time"`
-	CheckOutTime *time.Time `json:"check_out_time"`
+	Name        string     `json:"name" binding:"required"`
+	Institution string     `json:"institution"`
+	Purpose     string     `json:"purpose"`
+	Phone       string     `json:"phone"`
+	CheckInTime *time.Time `json:"check_in_time"`
 }
 
 func (h *GuestBookHandler) List(c *gin.Context) {
@@ -212,13 +216,13 @@ func (h *GuestBookHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
+	checkIn := orNow(req.CheckInTime)
 	item := model.GuestBook{
-		Name:         req.Name,
-		Institution:  req.Institution,
-		Purpose:      req.Purpose,
-		Phone:        req.Phone,
-		CheckInTime:  req.CheckInTime,
-		CheckOutTime: req.CheckOutTime,
+		Name:        req.Name,
+		Institution: req.Institution,
+		Purpose:     req.Purpose,
+		Phone:       req.Phone,
+		CheckInTime: &checkIn,
 	}
 	if err := h.db.Create(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan buku tamu", nil)
@@ -247,13 +251,39 @@ func (h *GuestBookHandler) Update(c *gin.Context) {
 	item.Institution = req.Institution
 	item.Purpose = req.Purpose
 	item.Phone = req.Phone
-	item.CheckInTime = req.CheckInTime
-	item.CheckOutTime = req.CheckOutTime
+	checkIn := orNow(req.CheckInTime)
+	item.CheckInTime = &checkIn
 	if err := h.db.Save(&item).Error; err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal menyimpan buku tamu", nil)
 		return
 	}
 	response.OK(c, "Buku tamu diperbarui", item)
+}
+
+// CheckOut mencatat jam keluar tamu sebagai aksi tersendiri, supaya petugas
+// tidak perlu membuka modal edit hanya untuk mengisi satu jam.
+func (h *GuestBookHandler) CheckOut(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "ID tidak valid", nil)
+		return
+	}
+	var item model.GuestBook
+	if err := h.db.First(&item, "id = ?", id).Error; err != nil {
+		response.Error(c, http.StatusNotFound, "Buku tamu tidak ditemukan", nil)
+		return
+	}
+	if item.CheckOutTime != nil {
+		response.Error(c, http.StatusConflict, "Tamu ini sudah tercatat keluar", nil)
+		return
+	}
+	now := time.Now()
+	item.CheckOutTime = &now
+	if err := h.db.Save(&item).Error; err != nil {
+		response.Error(c, http.StatusInternalServerError, "Gagal mencatat jam keluar tamu", nil)
+		return
+	}
+	response.OK(c, "Tamu dicatat keluar", item)
 }
 
 func (h *GuestBookHandler) Delete(c *gin.Context) {
