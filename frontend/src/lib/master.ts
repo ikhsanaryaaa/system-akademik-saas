@@ -50,6 +50,7 @@ export interface ClassRow {
   grade_level?: GradeLevel;
   major?: Major;
   homeroom?: Teacher;
+  student_count?: number;
 }
 
 export interface StudentRow {
@@ -58,10 +59,14 @@ export interface StudentRow {
   nis: string;
   nisn: string;
   gender?: string;
+  birth_place?: string;
+  birth_date?: string;
+  address?: string;
   class_id?: string;
   major_id?: string;
   photo_url?: string;
   class?: ClassRow;
+  major?: Major;
 }
 
 export interface Paginated<T> {

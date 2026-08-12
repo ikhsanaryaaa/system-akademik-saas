@@ -22,6 +22,9 @@ type Class struct {
 	AcademicYear *AcademicYear `gorm:"foreignKey:AcademicYearID" json:"academic_year,omitempty"`
 	Homeroom     *Teacher      `gorm:"foreignKey:HomeroomID" json:"homeroom,omitempty"`
 
+	// StudentCount diisi lewat subquery saat listing, bukan kolom tabel.
+	StudentCount int `gorm:"->;-:migration" json:"student_count"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

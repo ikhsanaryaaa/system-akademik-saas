@@ -15,7 +15,8 @@ export type FieldType =
   | "class"
   | "major"
   | "teacher"
-  | "ref";
+  | "ref"
+  | "context";
 
 // Opsi select boleh berupa string polos, atau pasangan value dan label bila
 // nilai yang disimpan berbeda dari teks yang ditampilkan.
@@ -31,6 +32,9 @@ export interface CrudField {
   // refPath dan refLabel dipakai untuk type "ref": endpoint daftar dan field label opsi.
   refPath?: string;
   refLabel?: string;
+  // contextFrom dipakai untuk type "context": nama relasi yang dibaca, misalnya
+  // "class" atau "major". Nilainya hanya ditampilkan, tidak pernah dikirim ke server.
+  contextFrom?: "class" | "major";
 }
 
 export interface CrudColumn {
@@ -53,7 +57,16 @@ export interface CrudModuleConfig {
   rowActions?: (row: Record<string, unknown>, reload: () => void) => ReactNode;
 }
 
-type FormState = { open: boolean; id: string | null; error: string; values: Record<string, unknown> };
+// origStudentId menyimpan siswa asal saat modal edit dibuka. Dipakai field
+// context untuk memutuskan menampilkan kelas yang tersimpan pada catatan, atau
+// kelas siswa baru bila siswanya diganti.
+type FormState = {
+  open: boolean;
+  id: string | null;
+  error: string;
+  origStudentId: string;
+  values: Record<string, unknown>;
+};
 
 type FormAction =
   | { type: "openCreate" }
@@ -62,14 +75,20 @@ type FormAction =
   | { type: "field"; key: string; value: unknown }
   | { type: "error"; value: string };
 
-const emptyForm: FormState = { open: false, id: null, error: "", values: {} };
+const emptyForm: FormState = { open: false, id: null, error: "", origStudentId: "", values: {} };
 
 function reducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case "openCreate":
-      return { open: true, id: null, error: "", values: {} };
+      return { open: true, id: null, error: "", origStudentId: "", values: {} };
     case "openEdit":
-      return { open: true, id: String(action.row.id), error: "", values: { ...action.row } };
+      return {
+        open: true,
+        id: String(action.row.id),
+        error: "",
+        origStudentId: String(action.row.student_id ?? ""),
+        values: { ...action.row },
+      };
     case "close":
       return { ...state, open: false };
     case "field":
@@ -94,6 +113,8 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
   // refData menyimpan daftar opsi untuk tiap field bertipe "ref", dikunci per key field.
   const [refData, setRefData] = useState<Record<string, { id: string; name: string }[]>>({});
   const [loading, setLoading] = useState(true);
+  // saving menahan simpan dan hapus berikutnya selama request masih berjalan.
+  const [saving, setSaving] = useState(false);
   const [filterClass, setFilterClass] = useState("");
   const [filterMajor, setFilterMajor] = useState("");
   const [form, dispatch] = useReducer(reducer, emptyForm);
@@ -153,9 +174,14 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     dispatch({ type: "error", value: "" });
+    if (saving) return;
     const body: Record<string, unknown> = {};
     for (const f of fields) {
       const v = form.values[f.key];
+      // Field context murni tampilan, nilainya ditetapkan server dari siswa terpilih.
+      if (f.type === "context") {
+        continue;
+      }
       if (f.type === "number") {
         body[f.key] = Number(v ?? 0);
       } else if (f.type === "boolean") {
@@ -169,20 +195,29 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
         body[f.key] = v ?? "";
       }
     }
+    setSaving(true);
     try {
       if (form.id) await http.put(`${path}/${form.id}`, body);
       else await http.post(path, body);
       dispatch({ type: "close" });
-      load();
+      await load();
     } catch {
       dispatch({ type: "error", value: "Gagal menyimpan data, periksa input" });
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleDelete(id: string) {
+    if (saving) return;
     if (!confirm("Hapus data ini?")) return;
-    await http.delete(`${path}/${id}`);
-    load();
+    setSaving(true);
+    try {
+      await http.delete(`${path}/${id}`);
+      await load();
+    } finally {
+      setSaving(false);
+    }
   }
 
   const canWrite = can(`${permPrefix}.create`);
@@ -346,7 +381,8 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
             </button>
             <button
               type="submit"
-              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
+              disabled={saving}
+              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             >
               Simpan
             </button>
@@ -362,6 +398,29 @@ export default function CrudModulePage({ config }: { config: CrudModuleConfig })
     const set = (v: unknown) => dispatch({ type: "field", key: f.key, value: v });
     const inputClass = "mt-1 h-[38px] w-full rounded-md border border-hairline px-3 text-sm outline-none focus:border-primary";
 
+    if (f.type === "context") {
+      const rel = f.contextFrom ?? "class";
+      const selected = String(form.values.student_id ?? "");
+      // Catatan merekam kondisi siswa saat kejadian. Selama siswanya tidak
+      // diganti, yang ditampilkan tetap nilai tersimpan, bukan kelas siswa
+      // sekarang, supaya riwayat tidak berubah makna ketika siswa naik kelas.
+      const keepStored = Boolean(form.id) && selected === form.origStudentId;
+      const student = students.find((s) => s.id === selected);
+      const shown = keepStored
+        ? (form.values[rel] as { name?: string } | undefined)?.name
+        : rel === "class"
+          ? student?.class?.name
+          : student?.major?.name;
+      return (
+        <input
+          id={id}
+          aria-label={f.label}
+          value={shown ?? (selected ? "Belum ditentukan" : "Pilih siswa lebih dulu")}
+          readOnly
+          className={`${inputClass} cursor-not-allowed bg-surface-soft text-muted`}
+        />
+      );
+    }
     if (f.type === "textarea") {
       return (
         <textarea

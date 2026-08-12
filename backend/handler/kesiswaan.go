@@ -166,13 +166,12 @@ func (h *AdmissionHandler) ChangeStatus(c *gin.Context) {
 
 // admissionConvertRequest berisi data yang tidak dimiliki pendaftar.
 // NIS diisi manual karena formatnya baru ditentukan pada tahap Setting Sekolah.
+// Kelas tidak diisi di sini, penempatannya dikerjakan lewat Kelas dan Rombel.
 type admissionConvertRequest struct {
-	NIS            string     `json:"nis" binding:"required"`
-	NISN           string     `json:"nisn"`
-	ClassID        *uuid.UUID `json:"class_id"`
-	AcademicYearID *uuid.UUID `json:"academic_year_id"`
-	BirthPlace     string     `json:"birth_place"`
-	BirthDate      *time.Time `json:"birth_date"`
+	NIS        string     `json:"nis" binding:"required"`
+	NISN       string     `json:"nisn"`
+	BirthPlace string     `json:"birth_place"`
+	BirthDate  *time.Time `json:"birth_date"`
 }
 
 // Convert membuat siswa master data dari pendaftar berstatus accepted.
@@ -203,10 +202,7 @@ func (h *AdmissionHandler) Convert(c *gin.Context) {
 		return
 	}
 
-	yearID := req.AcademicYearID
-	if yearID == nil {
-		yearID = item.AcademicYearID
-	}
+	yearID := item.AcademicYearID
 	if yearID == nil {
 		yearID = activeAcademicYearID(h.db)
 	}
@@ -217,7 +213,7 @@ func (h *AdmissionHandler) Convert(c *gin.Context) {
 		Gender:         item.Gender,
 		BirthPlace:     req.BirthPlace,
 		BirthDate:      req.BirthDate,
-		ClassID:        req.ClassID,
+		Address:        item.Address,
 		MajorID:        item.MajorID,
 		AcademicYearID: yearID,
 	}
@@ -322,9 +318,14 @@ func (h *StudentCoachingHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
 		return
 	}
+	// Kelas dan jurusan hanya ditulis ulang bila siswanya diganti. Catatan lama
+	// tetap memegang kondisi siswa saat kejadian, karena siswa berpindah kelas
+	// tiap tahun dan koreksi data tidak boleh mengubah riwayat.
+	if item.StudentID != req.StudentID {
+		item.ClassID = classID
+		item.MajorID = majorID
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = classID
-	item.MajorID = majorID
 	item.Topic = req.Topic
 	item.Detail = req.Detail
 	item.CoachName = req.CoachName
@@ -435,9 +436,11 @@ func (h *TalentDevelopmentHandler) Update(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Siswa tidak ditemukan", nil)
 		return
 	}
+	if item.StudentID != req.StudentID {
+		item.ClassID = classID
+		item.MajorID = majorID
+	}
 	item.StudentID = req.StudentID
-	item.ClassID = classID
-	item.MajorID = majorID
 	item.Field = req.Field
 	item.Category = req.Category
 	item.Detail = req.Detail

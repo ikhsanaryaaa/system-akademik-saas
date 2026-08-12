@@ -141,6 +141,11 @@ func Setup(cfg *config.Config, db *gorm.DB) *gin.Engine {
 			registerMasterCRUD(auth, "/classes", classHandler.List, classHandler.Create, classHandler.Update, classHandler.Delete)
 			registerMasterCRUD(auth, "/students", studentHandler.List, studentHandler.Create, studentHandler.Update, studentHandler.Delete)
 
+			// Isi kelas dikelola dari Kelas dan Rombel, bukan dari form siswa.
+			auth.GET("/classes/:id/students", middleware.RequirePermission("master.read"), classHandler.Students)
+			auth.POST("/classes/:id/students", middleware.RequirePermission("master.update"), classHandler.AssignStudents)
+			auth.DELETE("/classes/:id/students/:studentId", middleware.RequirePermission("master.update"), classHandler.RemoveStudent)
+
 			registerCurriculumCRUD(auth, "/subjects", subjectHandler.List, subjectHandler.Create, subjectHandler.Update, subjectHandler.Delete)
 			registerCurriculumCRUD(auth, "/class-subjects", classSubjectHandler.List, classSubjectHandler.Create, classSubjectHandler.Update, classSubjectHandler.Delete)
 			registerCurriculumCRUD(auth, "/lesson-schedules", lessonScheduleHandler.List, lessonScheduleHandler.Create, lessonScheduleHandler.Update, lessonScheduleHandler.Delete)

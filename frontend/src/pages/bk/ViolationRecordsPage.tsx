@@ -23,6 +23,12 @@ interface RecordForm {
   date: string;
   reporter_name: string;
   error: string;
+  // Tiga field berikut hanya untuk menampilkan konteks kelas dan jurusan,
+  // tidak pernah dikirim ke server. orig_student_id menandai siswa asal supaya
+  // catatan lama tetap menampilkan kelas saat kejadian.
+  orig_student_id: string;
+  class_name: string;
+  major_name: string;
 }
 
 const emptyRecord: RecordForm = {
@@ -34,6 +40,9 @@ const emptyRecord: RecordForm = {
   date: "",
   reporter_name: "",
   error: "",
+  orig_student_id: "",
+  class_name: "",
+  major_name: "",
 };
 
 type RecordAction =
@@ -57,6 +66,9 @@ function recordReducer(state: RecordForm, action: RecordAction): RecordForm {
         date: (action.value.date ?? "").slice(0, 10),
         reporter_name: action.value.reporter_name ?? "",
         error: "",
+        orig_student_id: action.value.student_id,
+        class_name: action.value.class?.name ?? "",
+        major_name: action.value.major?.name ?? "",
       };
     case "close":
       return { ...state, open: false };
@@ -122,6 +134,8 @@ export default function ViolationRecordsPage() {
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [types, setTypes] = useState<ViolationType[]>([]);
   const [loading, setLoading] = useState(true);
+  // saving menahan submit dan hapus berikutnya selama request masih berjalan.
+  const [saving, setSaving] = useState(false);
   const [filterClass, setFilterClass] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [record, dispatchRecord] = useReducer(recordReducer, emptyRecord);
@@ -163,7 +177,9 @@ export default function ViolationRecordsPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     dispatchRecord({ type: "error", value: "" });
+    setSaving(true);
     const body = {
       student_id: record.student_id,
       violation_type_id: record.violation_type_id,
@@ -175,15 +191,19 @@ export default function ViolationRecordsPage() {
       if (record.id) await http.put(`${PATH}/${record.id}`, body);
       else await http.post(PATH, body);
       dispatchRecord({ type: "close" });
-      load();
+      await load();
     } catch {
       dispatchRecord({ type: "error", value: "Gagal menyimpan pelanggaran, periksa input" });
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleFollowUp(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     dispatchFollowUp({ type: "error", value: "" });
+    setSaving(true);
     const body = {
       follow_up_status: followUp.follow_up_status,
       follow_up_note: followUp.follow_up_note,
@@ -192,16 +212,24 @@ export default function ViolationRecordsPage() {
     try {
       await http.put(`${PATH}/${followUp.id}/follow-up`, body);
       dispatchFollowUp({ type: "close" });
-      load();
+      await load();
     } catch {
       dispatchFollowUp({ type: "error", value: "Gagal menyimpan tindak lanjut" });
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleDelete(id: string) {
+    if (saving) return;
     if (!confirm("Hapus pelanggaran ini?")) return;
-    await http.delete(`${PATH}/${id}`);
-    load();
+    setSaving(true);
+    try {
+      await http.delete(`${PATH}/${id}`);
+      await load();
+    } finally {
+      setSaving(false);
+    }
   }
 
   const showActions = canUpdate || canDelete;
@@ -352,6 +380,19 @@ export default function ViolationRecordsPage() {
     </div>
   );
 
+  // contextValue menampilkan kelas atau jurusan yang menyertai catatan. Selama
+  // siswanya tidak diganti, yang tampil adalah nilai tersimpan, bukan kelas
+  // siswa sekarang, supaya riwayat tidak berubah makna saat siswa naik kelas.
+  function contextValue(rel: "class" | "major") {
+    if (!record.student_id) return "Pilih siswa lebih dulu";
+    if (record.id && record.student_id === record.orig_student_id) {
+      return (rel === "class" ? record.class_name : record.major_name) || "Belum ditentukan";
+    }
+    const student = students.find((s) => s.id === record.student_id);
+    const name = rel === "class" ? student?.class?.name : student?.major?.name;
+    return name ?? "Belum ditentukan";
+  }
+
   function renderRecordModal() {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay px-4">
@@ -376,6 +417,28 @@ export default function ViolationRecordsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label htmlFor="vr-class" className="block text-sm font-medium text-body">
+                Kelas
+              </label>
+              <input
+                id="vr-class"
+                value={contextValue("class")}
+                readOnly
+                className="mt-1 h-[38px] w-full cursor-not-allowed rounded-md border border-hairline bg-surface-soft px-3 text-sm text-muted"
+              />
+            </div>
+            <div>
+              <label htmlFor="vr-major" className="block text-sm font-medium text-body">
+                Jurusan
+              </label>
+              <input
+                id="vr-major"
+                value={contextValue("major")}
+                readOnly
+                className="mt-1 h-[38px] w-full cursor-not-allowed rounded-md border border-hairline bg-surface-soft px-3 text-sm text-muted"
+              />
             </div>
             <div>
               <label htmlFor="vr-type" className="block text-sm font-medium text-body">
@@ -443,7 +506,8 @@ export default function ViolationRecordsPage() {
             </button>
             <button
               type="submit"
-              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
+              disabled={saving}
+              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             >
               Simpan
             </button>
@@ -512,7 +576,8 @@ export default function ViolationRecordsPage() {
             </button>
             <button
               type="submit"
-              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
+              disabled={saving}
+              className="h-[38px] rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             >
               Simpan
             </button>

@@ -10,6 +10,8 @@ const config: CrudModuleConfig = {
   filters: ["class", "major"],
   fields: [
     { key: "student_id", label: "Siswa", type: "student", required: true },
+    { key: "class_id", label: "Kelas", type: "context", contextFrom: "class" },
+    { key: "major_id", label: "Jurusan", type: "context", contextFrom: "major" },
     { key: "type", label: "Jenis Layanan", type: "select", options: counselingTypes },
     { key: "field", label: "Bidang Layanan", type: "select", options: serviceFields },
     { key: "topic", label: "Topik", type: "text", required: true },
